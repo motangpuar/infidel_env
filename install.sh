@@ -7,6 +7,7 @@
 echo "VIM Conf"
 ln -sf $(pwd)/.vimrc /home/$(whoami)/
 ln -sf $(pwd)/.vim/ /home/$(whoami)/
+vim -c 'PlugInstall'
 
 echo "TMUX Conf"
 ln -sf $(pwd)/.vimrc /home/$(whoami)/
