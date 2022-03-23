@@ -7,7 +7,7 @@ This is the essential vim and tmux configuration for cli based unix systems.
 
 ## Clone
 ```
-> git clone http://git.nnag.xyz/base/config.git
+> git clone http://git.nnag.me/infidel/infidel_env.git
 ```
 
 ## Setup
@@ -18,5 +18,7 @@ $ ./install.sh
 ## Future Improvement
 
 - [x] Script automatically detect the environment (e.g. BSD)
+- [x] Symlink instead of copy. 
+- [x] Deploy a scaleable and portable environment.
 - [ ] Support Oh-My-Zsh installation
 
