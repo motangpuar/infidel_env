@@ -11,6 +11,8 @@ Plug 'kaicataldo/material.vim', { 'branch': 'main' }
 Plug 'neoclide/coc.nvim', {'branch': 'release'} " Intelisense
 Plug 'sheerun/vim-polyglot'
 Plug 'lifepillar/vim-gruvbox8'
+Plug 'junegunn/vim-easy-align'
+Plug 'rakr/vim-two-firewatch'
 
 call plug#end()
 
@@ -57,7 +59,7 @@ augroup vimrc-remember-cursor-position
 augroup END
 
 set background=dark
-colo default
+colo two-firewatch
 
 map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
 nnoremap <C-p> :Files<cr>
