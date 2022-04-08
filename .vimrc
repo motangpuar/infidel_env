@@ -63,3 +63,10 @@ colo two-firewatch
 
 map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
 nnoremap <C-p> :Files<cr>
+
+"Easy Align
+" Start interactive EasyAlign in visual mode (e.g. vipga)
+xmap ga <Plug>(EasyAlign)
+
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
