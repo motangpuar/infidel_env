@@ -16,7 +16,7 @@ $ ./install.sh
 ```
 ## VIM
 
-| **IMPORTANT** : Don't forget to perform `:PlugInstall` or `:PlugUpdate` after each git pull 
+> **IMPORTANT** : Don't forget to perform `:PlugInstall` or `:PlugUpdate` after each git pull 
 
 ### Global
 
