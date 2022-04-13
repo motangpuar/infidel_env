@@ -40,9 +40,15 @@ Toggle Goyo from command input mode `:Goyo` or use the <F8> shortcut.
 
 Toggle Limelight from command input mode `:Limelight` or use the <Leader><l> shortcut.
 
-### Completor
+### Autocomplete : Completor
 
-For autocomplete I choose completor. Jut type as usual and the completor will offer some completion, use tab to choose.
+> Completor is not good for servers, as it requires vim version with python support. 
+
+### Autocomplete : coc
+
+coc now can use tab to navigate completion list
+
+
 
 
 ## Future Improvement

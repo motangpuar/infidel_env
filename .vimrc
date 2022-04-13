@@ -11,9 +11,9 @@ Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 
 " Auto Completes
-" Plug 'neoclide/coc.nvim', 
+Plug 'neoclide/coc.nvim', 
 " Plug 'sheerun/vim-polyglot'
-Plug 'maralla/completor.vim'
+" Plug 'maralla/completor.vim'
 
 " Color Schemes
 Plug 'rakr/vim-two-firewatch'
@@ -103,10 +103,11 @@ let g:limelight_default_coefficient = 0.7
 "   Set it to -1 not to overrule hlsearch
 let g:limelight_priority = -1
 
-"Completor Tab
+"CoC Tab
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<cr>"
+inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+let g:coc_disable_startup_warning = 1
 
 "Goyo Setup
 "Call Limelight every time enter Goyo
