@@ -3,7 +3,7 @@
 
 ## General Info
 
-This is the essential vim and tmux configuration for cli based unix systems.
+This is the essential VIM and Tmux configuration for cli based unix systems.
 
 ## Clone
 ```
@@ -14,6 +14,34 @@ This is the essential vim and tmux configuration for cli based unix systems.
 ``` 
 $ ./install.sh
 ```
+## VIM
+
+### Global
+
+- Leader remmaped to `,` 
+- Enabled more visual blocks with J and K
+- Auto tabbed lines from normal mode using `>`
+
+### NerdTree
+
+Toggle NerdTree with <CTRL-k><k>.
+
+### EasyAlign
+
+Perform multiline visual select then enter `ga`. Next enter your preference alignment.
+
+### Goyo
+
+Toggle Goyo from command input mode `:Goyo` or use the <F8> shortcut. 
+
+### Limelight
+
+Toggle Limelight from command input mode `:Limelight` or use the <Leader><l> shortcut.
+
+### Completor
+
+For autocomplete I choose completor. Jut type as usual and the completor will offer some completion, use tab to choose.
+
 
 ## Future Improvement
 
