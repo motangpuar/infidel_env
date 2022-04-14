@@ -59,6 +59,6 @@ CoC now can use tab to navigate completion list. Make sure the target machine ha
 
 - [x] Script automatically detect the environment (e.g. BSD)
 - [x] Symlink instead of copy. 
-- [x] Deploy a scaleable and portable environment.
-- [ ] Support Oh-My-Zsh installation
-
+- [x] Deploy a scalable and portable environment.
+- [ ] ~~Support Oh-My-Zsh installation~~
+- [ ] Diagnostic Feature `-c` or `--check`
