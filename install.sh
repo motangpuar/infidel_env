@@ -15,11 +15,17 @@ user_guide () {
 
 }
 
+vim_extension () {
+    vim +PlugInstall +qall
+    vim -c "CocInstall coc-vimlsp coc-sh coc-python"
+}
+
 user_install () {
     echo "VIM Conf"
     ln -sf $(pwd)/.vimrc /home/$(whoami)/
     ln -sf $(pwd)/.vim/ /home/$(whoami)/
-    vim -c 'PlugInstall'
+    vim_extension
+
     
     echo "TMUX Conf"
     ln -sf $(pwd)/.vimrc /home/$(whoami)/
@@ -36,7 +42,7 @@ root_install () {
     echo "VIM Conf"
     sudo ln -sf $(pwd)/.vimrc /root/
     sudo ln -sf $(pwd)/.vim/  /root/
-    vim -c 'PlugInstall'
+    vim_extension
     
     echo "TMUX Conf"
     sudo ln -sf $(pwd)/.vimrc     /root/

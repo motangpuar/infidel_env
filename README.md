@@ -6,17 +6,17 @@
 This is the essential VIM and Tmux configuration for cli based unix systems.
 
 ## Clone
-```
-> git clone http://git.nnag.me/infidel/infidel_env.git
+```bash
+    git clone https://git.nnag.me/infidel/infidel_env.git
 ```
 
 ## Setup
-``` 
-$ ./install.sh
+``` bash
+    ./install.sh -u user
 ```
 ## VIM
 
-> **IMPORTANT** : Don't forget to perform `:PlugInstall` or `:PlugUpdate` after each git pull 
+> This installation script now can execute `:PlugUpdate` on first setup.
 
 ### Global
 
@@ -40,16 +40,19 @@ Toggle Goyo from command input mode `:Goyo` or use the <F8> shortcut.
 
 Toggle Limelight from command input mode `:Limelight` or use the <Leader><l> shortcut.
 
+### Autocomplete : CoC
+
+CoC now can use tab to navigate completion list. Make sure the target machine have nodejs for CoC to run properly.
+
+**CoC Extensions included** :
+
+- `coc-vimlsp` for VIM script
+- `coc-pyright` for Python
+- `coc-sh` for SH scripts
+
 ### Autocomplete : Completor
 
 > Completor is not good for servers, as it requires vim version with python support. 
-
-### Autocomplete : coc
-
-coc now can use tab to navigate completion list
-
-
-
 
 ## Future Improvement
 

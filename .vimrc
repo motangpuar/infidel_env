@@ -1,5 +1,5 @@
-" config.vim
-"
+" infidel
+
 call plug#begin('~/.vim/plugged')
 
 " Essentials 
@@ -11,9 +11,11 @@ Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 
 " Auto Completes
-Plug 'neoclide/coc.nvim', 
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+" Plug 'neoclide/coc.nvim', 
 " Plug 'sheerun/vim-polyglot'
 " Plug 'maralla/completor.vim'
+" 
 
 " Color Schemes
 Plug 'rakr/vim-two-firewatch'
@@ -103,11 +105,21 @@ let g:limelight_default_coefficient = 0.7
 "   Set it to -1 not to overrule hlsearch
 let g:limelight_priority = -1
 
-"CoC Tab
-inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
-inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
-inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+"CoC 
 let g:coc_disable_startup_warning = 1
+"Tab Navigation
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+"Coc vimlsp Highlighting
+let g:markdown_fenced_languages = [
+      \ 'vim',
+      \ 'help'
+      \]
+
 
 "Goyo Setup
 "Call Limelight every time enter Goyo
