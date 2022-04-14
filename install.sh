@@ -17,7 +17,8 @@ user_guide () {
 
 vim_extension () {
     vim +PlugInstall +qall
-    vim -c "CocInstall coc-vimlsp coc-sh coc-python"
+    vim -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker"
+    vim -c "CocCommand cSpell.enabledLanguageIds sh" # Add SH Script for spell checking
 }
 
 user_install () {

@@ -49,6 +49,7 @@ CoC now can use tab to navigate completion list. Make sure the target machine ha
 - `coc-vimlsp` for VIM script
 - `coc-pyright` for Python
 - `coc-sh` for SH scripts
+- `coc-spell-checker` : General spell checker in EN
 
 ### Autocomplete : Completor
 
