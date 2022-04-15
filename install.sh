@@ -29,7 +29,6 @@ user_install () {
 
     
     echo "TMUX Conf"
-    ln -sf $(pwd)/.vimrc /home/$(whoami)/
     ln -sf $(pwd)/.tmux.conf /home/$(whoami)/
     
     echo "TMUX Plugin"
@@ -46,7 +45,6 @@ root_install () {
     vim_extension
     
     echo "TMUX Conf"
-    sudo ln -sf $(pwd)/.vimrc     /root/
     sudo ln -sf $(pwd)/.tmux.conf /root/
     
     echo "TMUX Plugin"
