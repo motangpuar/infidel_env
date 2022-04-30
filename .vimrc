@@ -9,6 +9,7 @@ Plug 'junegunn/vim-easy-align'
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
+Plug 'gyim/vim-boxdraw'
 
 " Auto Completes
 Plug 'neoclide/coc.nvim', {'branch': 'release'}

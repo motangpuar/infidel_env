@@ -27,7 +27,7 @@ This is the essential VIM and Tmux configuration for cli based unix systems.
 ### NerdTree
 
 Toggle NerdTree with <CTRL-k><k>.
-
+T
 ### EasyAlign
 
 Perform multiline visual select then enter `ga`. Next enter your preference alignment.
@@ -54,6 +54,14 @@ CoC now can use tab to navigate completion list. Make sure the target machine ha
 ### Autocomplete : Completor
 
 > Completor is not good for servers, as it requires vim version with python support. 
+
+#### vimbox-draw
+
+Create ASCII diagrams : 
+
+- Visual select some box
+- invoke `+o` to create box or `+O` to create box with label
+- To add label into existing box, visual select the area then invoke `+c`
 
 ## Future Improvement
 
