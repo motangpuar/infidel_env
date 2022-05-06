@@ -19,6 +19,7 @@ vim_extension () {
     vim +PlugInstall +qall
     vim -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker"
     vim -c "CocCommand cSpell.enableLanguage sh" # Add SH Script for spell checking
+    curl -sL install-node.vercel.app/lts | bash -s -- -P $HOME/.local
 }
 
 user_install () {
