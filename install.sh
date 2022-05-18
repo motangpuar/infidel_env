@@ -16,10 +16,20 @@ user_guide () {
 }
 
 vim_extension () {
+
     vim +PlugInstall +qall
     vim -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker"
     vim -c "CocCommand cSpell.enableLanguage sh" # Add SH Script for spell checking
+
+    if [ ! -d "$HOME/.local/bin" ] ; then
+        mkdir -p $HOME/.local/bin/
+    fi
+
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.profile # Temporary add exclusion next time
+
     curl -sL install-node.vercel.app/lts | bash -s -- -P $HOME/.local
+
+        
 }
 
 user_install () {
