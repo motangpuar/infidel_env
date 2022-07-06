@@ -34,8 +34,17 @@ vim_extension () {
 
 user_install () {
     echo "VIM Conf"
+
     ln -sf $(pwd)/.vimrc /home/$(whoami)/
+
+    if [ -d "$HOME/.vim" ] ; then
+        echo -e "\tExisting .vim directory detected..."
+        mv "$HOME/.vim" "$HOME/.vim.bak"
+        read -p "...."
+    fi
+
     ln -sf $(pwd)/.vim/ /home/$(whoami)/
+
     vim_extension
 
     
