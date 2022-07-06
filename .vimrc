@@ -1,5 +1,6 @@
 " infidel
 
+
 call plug#begin('~/.vim/plugged')
 
 " Essentials 
@@ -10,6 +11,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'gyim/vim-boxdraw'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
 " Auto Completes
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -23,6 +26,7 @@ Plug 'rakr/vim-two-firewatch'
 Plug 'lifepillar/vim-gruvbox8'
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'kaicataldo/material.vim', { 'branch': 'main' }
+Plug 'UndeadLeech/vim-undead'
 
 call plug#end()
 
@@ -45,7 +49,7 @@ set mouse=a               " Enable mouse on all modes
 set clipboard=unnamed,unnamedplus     " Use the OS clipboard
 set showmatch
 "set termguicolors 
-set t_Co=256
+" set t_Co=256
 set splitright splitbelow
 set list lcs=tab:\¦\      "(here is a space)
 let &t_SI = "\e[6 q"      " Make cursor a line in insert
@@ -66,8 +70,8 @@ augroup vimrc-remember-cursor-position
 augroup END
 
 set background=dark
-colo gruvbox8_hard
-
+" colo gruvbox8_hard
+colo undead
 map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
 nnoremap <C-p> :Files<cr>
 
@@ -133,3 +137,7 @@ autocmd! User GoyoEnter Limelight
 autocmd! User GoyoLeave Limelight!
 " Toggle Goyo
 nmap <F8> : Goyo<cr>
+
+"Airline 
+let g:airline_theme = 'undead'
+let g:airline_powerline_fonts = 1

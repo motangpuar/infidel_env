@@ -44,6 +44,10 @@ Toggle Limelight from command input mode `:Limelight` or use the <Leader><l> sho
 
 CoC now can use tab to navigate completion list. Make sure the target machine have nodejs for CoC to run properly.
 
+### Airline 
+
+I use airline as status bar
+
 **CoC Extensions included** :
 
 - `coc-vimlsp` for VIM script
