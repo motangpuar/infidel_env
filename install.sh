@@ -40,7 +40,6 @@ user_install () {
     if [ -d "$HOME/.vim" ] ; then
         echo -e "\tExisting .vim directory detected..."
         mv "$HOME/.vim" "$HOME/.vim.bak"
-        read -p "...."
     fi
 
     ln -sf $(pwd)/.vim/ /home/$(whoami)/
