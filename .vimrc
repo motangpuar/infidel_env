@@ -15,40 +15,60 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
 " Auto Completes
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
-" Plug 'neoclide/coc.nvim', 
+" Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'neoclide/coc.nvim', 
+Plug 'evanleck/vim-svelte', 
 " Plug 'sheerun/vim-polyglot'
 " Plug 'maralla/completor.vim'
 " 
 
 " Color Schemes
-Plug 'rakr/vim-two-firewatch'
-Plug 'lifepillar/vim-gruvbox8'
+Plug 'rakr/vim-two-firewatch' 
+Plug 'lifepillar/vim-gruvbox8' 
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'kaicataldo/material.vim', { 'branch': 'main' }
-Plug 'UndeadLeech/vim-undead'
+" Plug 'UndeadLeech/vim-undead'
+" Plug 'sainnhe/everforest' 
+Plug 'sainnhe/vim-color-forest-night' 
+Plug 'karoliskoncevicius/sacredforest-vim'
+
+" Misc
+" Plug 'preservim/vim-markdown'
+Plug 'lervag/vimtex'
 
 call plug#end()
+
+" Kitty Patch
+let &t_ut=''
+if has('gui_running') || has('nvim') 
+    hi Normal 		guifg=#f6f3e8 guibg=#242424 
+else
+    " Set the terminal default background and foreground colors, thereby
+    " improving performance by not needing to set these colors on empty cells.
+    hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
+    let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#242424\007"
+    let &t_te = &t_te . "\033]110\007\033]111\007"
+endif
 
 let mapleader = ","
 syntax on
 set re=1
 set nocompatible
 
-set number                " Show numbers on the left
-set hlsearch              " Highlight search results
-set ignorecase            " Search ingnoring case
-set smartcase             " Do not ignore case if the search patter has uppercase set noerrorbells          " I hate bells set belloff=esc
-set tabstop=4             " Tab size of 4 spaces
-set softtabstop=4         " On insert use 4 spaces for tab
+set number                                          " Show numbers on the left
+set hlsearch                                        " Highlight search results
+set ignorecase                                      " Search ingnoring case
+set smartcase                                       " Do not ignore case if the search patter has uppercase set noerrorbells
+set tabstop=4                                       " Tab size of 4 spaces
+set softtabstop=4                                   " On insert use 4 spaces for tab
 set shiftwidth=4
-set expandtab             " Use apropiate number of spaces
-set nowrap                " Wrapping sucks (except on markdown)
-autocmd BufRead,BufNewFile *.md,*.txt setlocal wrap " DO wrap on markdown files set noswapfile            " Do not leve any backup files
-set mouse=a               " Enable mouse on all modes
-set clipboard=unnamed,unnamedplus     " Use the OS clipboard
+set expandtab                                       " Use apropiate number of spaces
+                                                    " set nowrap                " Wrapping sucks (except on markdown); Now smart
+autocmd BufRead,BufNewFile *.md,*.txt setlocal wrap " DO wrap on markdown files set noswapfile
+set mouse=a                                         " Enable mouse on all modes
+set clipboard=unnamed,unnamedplus                   " Use the OS clipboard
 set showmatch
-"set termguicolors 
+set termguicolors 
 " set t_Co=256
 set splitright splitbelow
 set list lcs=tab:\¦\      "(here is a space)
@@ -69,9 +89,12 @@ augroup vimrc-remember-cursor-position
   autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 augroup END
 
+" let g:everforest_better_performance = 1
+" let g:everforest_background = 'soft'
 set background=dark
 " colo gruvbox8_hard
-colo undead
+colorscheme everforest
+
 map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
 nnoremap <C-p> :Files<cr>
 
@@ -113,11 +136,11 @@ let g:limelight_priority = -1
 "CoC 
 let g:coc_disable_startup_warning = 1
 "Tab Navigation
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+" inoremap <silent><expr> <TAB>
+"       \ pumvisible() ? "\<C-n>" :
+"       \ <SID>check_back_space() ? "\<TAB>" :
+"       \ coc#refresh()
+" inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
 function! s:check_back_space() abort
       let col = col('.') - 1
@@ -132,12 +155,49 @@ let g:markdown_fenced_languages = [
 
 
 "Goyo Setup
-"Call Limelight every time enter Goyo
-autocmd! User GoyoEnter Limelight
+autocmd! User GoyoEnter Limelight       "Call Limelight every time enter Goyo
 autocmd! User GoyoLeave Limelight!
-" Toggle Goyo
-nmap <F8> : Goyo<cr>
+nmap <F8> : Goyo<cr>                    " Toggle Goyo
 
 "Airline 
-let g:airline_theme = 'undead'
+let g:airline_theme = 'everforest'
 let g:airline_powerline_fonts = 1
+
+"Smart Indent for Wrapped Lines
+set breakindent
+set breakindentopt=shift:3,min:40,sbr
+set showbreak=...
+
+" This is necessary for VimTeX to load properly. The "indent" is optional.
+" Note that most plugin managers will do this automatically.
+filetype plugin indent on
+
+" This enables Vim's and neovim's syntax-related features. Without this, some
+" VimTeX features will not work (see ":help vimtex-requirements" for more
+" info).
+syntax enable
+
+" Viewer options: One may configure the viewer either by specifying a built-in
+" viewer method:
+let g:vimtex_view_method = 'zathura'
+
+" Or with a generic interface:
+let g:vimtex_view_general_viewer = 'okular'
+let g:vimtex_quickfix_autoclose_after_keystrokes = 1
+let g:vimtex_view_general_options = '--unique file:@pdf\#src:@line@tex'
+
+" VimTeX uses latexmk as the default compiler backend. If you use it, which is
+" strongly recommended, you probably don't need to configure anything. If you
+" want another compiler backend, you can change it as follows. The list of
+" supported backends and further explanation is provided in the documentation,
+" see ":help vimtex-compiler".
+let g:vimtex_compiler_method = 'latexmk'
+
+" Most VimTeX mappings rely on localleader and this can be changed with the
+" following line. The default is usually fine and is the symbol "\".
+let maplocalleader = ","
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
