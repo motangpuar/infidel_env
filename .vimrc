@@ -4,6 +4,7 @@
 call plug#begin('~/.vim/plugged')
 
 " Essentials 
+Plug 'jasonccox/vim-wayland-clipboard'
 Plug 'tpope/vim-sensible'         " Sensible defaults
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
 Plug 'junegunn/vim-easy-align'
@@ -201,3 +202,4 @@ function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
+
