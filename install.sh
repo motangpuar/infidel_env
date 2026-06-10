@@ -1,124 +1,53 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# cp ./.vimrc /home/$(whoami)/
-# cp -r ./.vim/ /home/$(whoami)/
-# cp -r ./.tmux.conf /home/$(whoami)/
+set -euo pipefail
 
-user_guide () {
-    echo
-    echo "Usage: $0 [options]" 
-    echo
-    echo "Options:"
-    echo "      -i : Install for Single User [user,root]"
-    echo "      -a : Install for all user"
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+source "$ROOT_DIR/modules/deps.sh"
+source "$ROOT_DIR/modules/links.sh"
+source "$ROOT_DIR/modules/vim.sh"
+source "$ROOT_DIR/modules/tmux.sh"
 
+usage() {
+    echo "Usage:"
+    echo "  $0 -i user"
+    echo "  $0 -i root"
+    echo "  $0 -a"
 }
 
-vim_extension () {
-
-    vim +PlugInstall +qall
-    vim -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker"
-    vim -c "CocCommand cSpell.enableLanguage sh" # Add SH Script for spell checking
-
-    if [ ! -d "$HOME/.local/bin" ] ; then
-        mkdir -p $HOME/.local/bin/
-    fi
-
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> $HOME/.profile # Temporary add exclusion next time
-
-    curl -sL install-node.vercel.app/lts | bash -s -- -P $HOME/.local
-
-        
-}
-
-user_install () {
-    echo "VIM Conf"
-
-    ln -sf $(pwd)/.vimrc /home/$(whoami)/
-
-    if [ -d "$HOME/.vim" ] ; then
-        echo -e "\tExisting .vim directory detected..."
-        mv "$HOME/.vim" "$HOME/.vim.bak"
-    fi
-
-    ln -sf $(pwd)/.vim/ /home/$(whoami)/
-
-    vim_extension
-
-    
-    echo "TMUX Conf"
-    ln -sf $(pwd)/.tmux.conf /home/$(whoami)/
-    
-    echo "TMUX Plugin"
-    mkdir -p "/home/$(whoami)/.tmux/plugins"
-    [ -d "/home/$(whoami)/.tmux/plugins/tpm" ] || git clone https://github.com/tmux-plugins/tpm /home/$(whoami)/.tmux/plugins/tpm
-}
-
-
-root_install () {
-    # sudo su
-    echo "VIM Conf"
-    sudo ln -sf $(pwd)/.vimrc /root/
-    sudo ln -sf $(pwd)/.vim/  /root/
-    vim_extension
-    
-    echo "TMUX Conf"
-    sudo ln -sf $(pwd)/.tmux.conf /root/
-    
-    echo "TMUX Plugin"
-    sudo mkdir -p "/root/.tmux/plugins"
-    [ -d "/root/.tmux/plugins/tpm" ] || sudo git clone https://github.com/tmux-plugins/tpm /root/.tmux/plugins/tpm
-}
-
-
-
-# echo "What : $#"
-
-if [ $# -lt 1 ]
-then 
-    user_guide # Call user guide
-    exit
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
 fi
 
-# echo "case $1"
+MODE="$1"
 
-case "$1"  in
+case "$MODE" in
+    -i)
+        TARGET="$2"
+        if [ "$TARGET" != "user" ] && [ "$TARGET" != "root" ]; then
+            usage
+            exit 1
+        fi
 
-    -i)     echo "Installing For Single User "
-            if [ $# -lt 2 ]
-            then
-                echo "Error Syntax" 
-                user_guide # Call user guide
-                exit
-            fi
-            case "$2" in
-                user)  echo "USER Installation"
-                       echo "Case $2"
-                       user_install # Call User install function
-                ;;
-                root)  echo "ROOT Installation"
-                       echo "Case $2"
-                       root_install # Call User install function
-                ;;
-                *)
-                       echo "Error Syntax" 
-                       user_guide # Call user guide
-                ;;
-            esac
-    ;;
-    -a)     echo "Installing...."
-            echo "Case Global" 
-            if [ $# -gt 1 ]
-            then
-                user_guide # Call user guide
-                exit
-            fi
-            user_install # Call User install function
-            root_install # Call User install function
-    ;;
+        install_deps
+        install_links "$TARGET"
+        install_vim "$TARGET"
+        install_tmux "$TARGET"
+        ;;
+    -a)
+        install_deps
+        install_links "user"
+        install_vim "user"
+        install_tmux "user"
+
+        install_links "root"
+        install_vim "root"
+        install_tmux "root"
+        ;;
     *)
-                echo "Error Syntax" 
-                user_guide # Call user guide
-    ;;
+        usage
+        exit 1
+        ;;
 esac
