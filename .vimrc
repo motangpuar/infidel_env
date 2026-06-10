@@ -14,6 +14,7 @@ Plug 'junegunn/limelight.vim'
 Plug 'gyim/vim-boxdraw'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'ojroques/vim-oscyank'
 
 " Auto Completes
 " Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -22,6 +23,7 @@ Plug 'evanleck/vim-svelte',
 " Plug 'sheerun/vim-polyglot'
 " Plug 'maralla/completor.vim'
 " 
+Plug 'wakatime/vim-wakatime'
 
 " Color Schemes
 Plug 'rakr/vim-two-firewatch' 
@@ -36,6 +38,7 @@ Plug 'karoliskoncevicius/sacredforest-vim'
 " Misc
 " Plug 'preservim/vim-markdown'
 Plug 'lervag/vimtex'
+Plug 'wellle/context.vim'
 
 call plug#end()
 
@@ -66,8 +69,12 @@ set shiftwidth=4
 set expandtab                                       " Use apropiate number of spaces
                                                     " set nowrap                " Wrapping sucks (except on markdown); Now smart
 autocmd BufRead,BufNewFile *.md,*.txt setlocal wrap " DO wrap on markdown files set noswapfile
+
 set mouse=a                                         " Enable mouse on all modes
-set clipboard=unnamed,unnamedplus                   " Use the OS clipboard
+if has('clipboard')
+    set clipboard=unnamed,unnamedplus                   " Use the OS clipboard
+endif
+
 set showmatch
 set termguicolors 
 " set t_Co=256
@@ -202,4 +209,10 @@ function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
+
+let g:context_enabled = 1
+"vnoremap <leader>y :OSCYank<CR>
+vmap <leader>y <Plug>OSCYankVisual
+
+
 
