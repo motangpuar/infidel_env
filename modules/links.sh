@@ -4,6 +4,18 @@ link_file() {
     local src="$1"
     local dst="$2"
 
+
+    if [ "$target" = "root" ]; then
+        base="/root"
+    fi
+
+    # Check Path or file exist already
+    # If path exist, move to *.bak
+    if [ -e "$dst" ]; then
+        mv "$dst" "$dst.bak"
+    fi
+    
+    # Do the linking
     ln -sf "$src" "$dst"
 }
 
