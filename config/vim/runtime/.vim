@@ -1,1 +1,1 @@
-/home/infidel/distrobox/archfox/infidel_env/config/vim/runtime
+/home/infidel/infidel_env/config/vim/runtime

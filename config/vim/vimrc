@@ -17,8 +17,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'ojroques/vim-oscyank'
 
 " Auto Completes
-" Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'neoclide/coc.nvim', 
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'evanleck/vim-svelte', 
 " Plug 'sheerun/vim-polyglot'
 " Plug 'maralla/completor.vim'
@@ -100,8 +99,8 @@ augroup END
 " let g:everforest_better_performance = 1
 " let g:everforest_background = 'soft'
 set background=dark
-" colo gruvbox8_hard
-colorscheme everforest
+colo gruvbox8_hard
+" colorscheme everforest
 
 map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
 nnoremap <C-p> :Files<cr>
@@ -143,17 +142,18 @@ let g:limelight_priority = -1
 
 "CoC 
 let g:coc_disable_startup_warning = 1
-"Tab Navigation
-" inoremap <silent><expr> <TAB>
-"       \ pumvisible() ? "\<C-n>" :
-"       \ <SID>check_back_space() ? "\<TAB>" :
-"       \ coc#refresh()
-" inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
+"Tab Navigation
 function! s:check_back_space() abort
       let col = col('.') - 1
         return !col || getline('.')[col - 1]  =~# '\s'
     endfunction
+
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <silent><expr> <CR> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>"
                      
 "Coc vimlsp Highlighting
 let g:markdown_fenced_languages = [
@@ -205,14 +205,13 @@ let g:vimtex_compiler_method = 'latexmk'
 " following line. The default is usually fine and is the symbol "\".
 let maplocalleader = ","
 
-function! s:check_back_space() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
 let g:context_enabled = 1
 "vnoremap <leader>y :OSCYank<CR>
 vmap <leader>y <Plug>OSCYankVisual
 
+" Soft Marker for to long of a comment
+set colorcolumn=80
+
+set completeopt=menu,menuone,noselect,noinsert
 
 
