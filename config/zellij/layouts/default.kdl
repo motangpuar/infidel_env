@@ -1,0 +1,52 @@
+layout {
+    default_tab_template {
+        // --- PANE 1: Custom Seoul256 Light Tab Bar ---
+        pane size=1 borderless=true {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
+
+                // --- Seoul256 Light Palette (Low-Contrast Cream/Pastels) ---
+                color_bg      "#e4e4e4" // Soft light cream background
+                color_surface "#d0d0d0" // Mid-tone light gray for capsule backgrounds
+                color_text    "#4e4e4e" // Dark gray readable text
+                color_subtext "#878787" // Inactive tab text
+
+                color_blue    "#5f87ae" // Soft blue
+                color_red     "#af5f5f" // Soft red/pink
+                color_orange  "#af8760" // Soft orange/brown
+                color_green   "#5f885f" // Soft green
+                color_purple  "#875f87" // Soft purple
+
+                // --- Structural Formatting (No Broken Widths) ---
+                format_left  "{mode}#[bg=$bg] {tabs}"
+                format_right "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]{datetime}"
+                format_space "#[bg=$bg]"
+
+                // --- 1. Mode Pill Layouts ---
+                mode_normal  "#[fg=$blue,bg=$bg]#[fg=$bg,bg=$blue,bold] NORMAL #[fg=$blue,bg=$bg]"
+                mode_locked  "#[fg=$red,bg=$bg]#[fg=$bg,bg=$red,bold] LOCKED #[fg=$red,bg=$bg]"
+                mode_resize  "#[fg=$orange,bg=$bg]#[fg=$bg,bg=$orange,bold] RESIZE #[fg=$orange,bg=$bg]"
+                mode_pane    "#[fg=$purple,bg=$bg]#[fg=$bg,bg=$purple,bold] PANE   #[fg=$purple,bg=$bg]"
+                mode_tab     "#[fg=$purple,bg=$bg]#[fg=$bg,bg=$purple,bold] TAB    #[fg=$purple,bg=$bg]"
+
+                // --- 2. Tab Item Layouts ---
+                tab_normal   "#[fg=$surface,bg=$bg]#[fg=$subtext,bg=$surface]{index}: {name}#[fg=$surface,bg=$bg] "
+                tab_active   "#[fg=$green,bg=$bg]#[fg=$bg,bg=$green,bold]{index}: {name}#[fg=$green,bg=$bg] "
+
+                // --- 3. Datetime Widget ---
+                datetime        " #[fg=$text,bg=$surface,bold]{format}#[fg=$surface,bg=$bg]"
+                datetime_format "%H:%M"
+                datetime_timezone "America/New_York"
+            }
+        }
+
+        // --- PANE 2: Interactive Terminal Workspaces ---
+        children
+
+        // --- PANE 3: Native Key-Hint Popup Bar ---
+        // This brings back the dynamic "Ctrl + <XX>" options panel seamlessly
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+}
+

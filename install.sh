@@ -4,7 +4,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-source "$ROOT_DIR/modules/deps.sh"
 source "$ROOT_DIR/modules/links.sh"
 source "$ROOT_DIR/modules/vim.sh"
 source "$ROOT_DIR/modules/tmux.sh"
@@ -31,7 +30,6 @@ case "$MODE" in
             exit 1
         fi
 
-        install_deps
         install_links "$TARGET"
         install_vim "$TARGET"
         install_tmux "$TARGET"

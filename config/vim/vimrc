@@ -15,6 +15,7 @@ Plug 'gyim/vim-boxdraw'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'ojroques/vim-oscyank'
+Plug 'ryanoasis/vim-devicons'
 
 " Auto Completes
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
@@ -25,19 +26,26 @@ Plug 'evanleck/vim-svelte',
 Plug 'wakatime/vim-wakatime'
 
 " Color Schemes
+Plug 'sainnhe/gruvbox-material'
 Plug 'rakr/vim-two-firewatch' 
-Plug 'lifepillar/vim-gruvbox8' 
+Plug 'joshdick/onedark.vim'
+"Plug 'lifepillar/vim-gruvbox8' 
 Plug 'drewtempelmeyer/palenight.vim'
 Plug 'kaicataldo/material.vim', { 'branch': 'main' }
 " Plug 'UndeadLeech/vim-undead'
 " Plug 'sainnhe/everforest' 
 Plug 'sainnhe/vim-color-forest-night' 
 Plug 'karoliskoncevicius/sacredforest-vim'
+Plug 'junegunn/seoul256.vim'
 
 " Misc
 " Plug 'preservim/vim-markdown'
 Plug 'lervag/vimtex'
 Plug 'wellle/context.vim'
+
+" Markdown
+Plug 'liuchengxu/vista.vim'
+Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
 
 call plug#end()
 
@@ -98,8 +106,9 @@ augroup END
 
 " let g:everforest_better_performance = 1
 " let g:everforest_background = 'soft'
-set background=dark
-colo gruvbox8_hard
+"colo gruvbox-material
+set background=light
+colo seoul256-light
 " colorscheme everforest
 
 map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
@@ -168,8 +177,21 @@ autocmd! User GoyoLeave Limelight!
 nmap <F8> : Goyo<cr>                    " Toggle Goyo
 
 "Airline 
-let g:airline_theme = 'everforest'
+let g:airline_theme = 'sacredforest'
 let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#show_tabs = 1
+let g:airline#extensions#tabline#show_buffers = 0
+let g:airline#extensions#tabline#show_tab_nr = 1
+let g:airline#extensions#tabline#tab_nr_type = 1
+let g:airline#extensions#tabline#left_sep = "\uE0B4"
+let g:airline#extensions#tabline#right_sep = "\uE0B6"
+let g:airline#extensions#tabline#left_alt_sep = "\u2022"
+let g:airline#extensions#tabline#right_alt_sep = "\u2022"
+let g:airline_left_sep = "\uE0B4"
+let g:airline_right_sep = "\uE0B6"
+let g:airline_left_alt_sep = "\u2022"
+let g:airline_right_alt_sep = "\u2022"
 
 "Smart Indent for Wrapped Lines
 set breakindent
@@ -205,6 +227,7 @@ let g:vimtex_compiler_method = 'latexmk'
 " following line. The default is usually fine and is the symbol "\".
 let maplocalleader = ","
 
+" Paste to WindowManager
 let g:context_enabled = 1
 "vnoremap <leader>y :OSCYank<CR>
 vmap <leader>y <Plug>OSCYankVisual
@@ -214,4 +237,19 @@ set colorcolumn=80
 
 set completeopt=menu,menuone,noselect,noinsert
 
+" Tab Navigation
+nnoremap <Leader>1 1gt
+nnoremap <Leader>2 2gt
+nnoremap <Leader>3 3gt
+nnoremap <Leader>4 4gt
+nnoremap <Leader>5 5gt
+nnoremap <Leader>6 6gt
+nnoremap <Leader>7 7gt
+nnoremap <Leader>8 8gt
+nnoremap <Leader>9 9gt
 
+augroup FinalKeymaps
+  autocmd!
+  autocmd VimEnter * nnoremap H :tabprevious<CR>
+  autocmd VimEnter * nnoremap L :tabnext<CR>
+augroup END
