@@ -1,51 +1,71 @@
 layout {
     default_tab_template {
-        // --- PANE 1: Custom Seoul256 Light Tab Bar ---
+        // --- 1. TOP BAR ---
         pane size=1 borderless=true {
-            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
+            plugin location="zjstatus" {
+                color_bg      "#e4e4e4"
+                color_surface "#d0d0d0"
+                color_text    "#4e4e4e"
+                color_subtext "#878787"
+                color_blue    "#5f87ae"
+                color_red     "#af5f5f"
+                color_orange  "#af8760"
+                color_green   "#5f885f"
 
-                // --- Seoul256 Light Palette (Low-Contrast Cream/Pastels) ---
-                color_bg      "#e4e4e4" // Soft light cream background
-                color_surface "#d0d0d0" // Mid-tone light gray for capsule backgrounds
-                color_text    "#4e4e4e" // Dark gray readable text
-                color_subtext "#878787" // Inactive tab text
+                format_left   "{mode}#[bg=$bg] {tabs}"
+                format_center ""
+                format_right  "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]{datetime}"
+                format_space  "#[bg=$bg]"
 
-                color_blue    "#5f87ae" // Soft blue
-                color_red     "#af5f5f" // Soft red/pink
-                color_orange  "#af8760" // Soft orange/brown
-                color_green   "#5f885f" // Soft green
-                color_purple  "#875f87" // Soft purple
-
-                // --- Structural Formatting (No Broken Widths) ---
-                format_left  "{mode}#[bg=$bg] {tabs}"
-                format_right "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]{datetime}"
-                format_space "#[bg=$bg]"
-
-                // --- 1. Mode Pill Layouts ---
                 mode_normal  "#[fg=$blue,bg=$bg]#[fg=$bg,bg=$blue,bold] NORMAL #[fg=$blue,bg=$bg]"
                 mode_locked  "#[fg=$red,bg=$bg]#[fg=$bg,bg=$red,bold] LOCKED #[fg=$red,bg=$bg]"
                 mode_resize  "#[fg=$orange,bg=$bg]#[fg=$bg,bg=$orange,bold] RESIZE #[fg=$orange,bg=$bg]"
-                mode_pane    "#[fg=$purple,bg=$bg]#[fg=$bg,bg=$purple,bold] PANE   #[fg=$purple,bg=$bg]"
-                mode_tab     "#[fg=$purple,bg=$bg]#[fg=$bg,bg=$purple,bold] TAB    #[fg=$purple,bg=$bg]"
+                mode_pane    "#[fg=$blue,bg=$bg]#[fg=$bg,bg=$blue,bold] PANE   #[fg=$blue,bg=$bg]"
+                mode_tab     "#[fg=$blue,bg=$bg]#[fg=$bg,bg=$blue,bold] TAB    #[fg=$blue,bg=$bg]"
+                mode_move    "#[fg=$orange,bg=$bg]#[fg=$bg,bg=$orange,bold] MOVE   #[fg=$orange,bg=$bg]"
+                mode_session "#[fg=$green,bg=$bg]#[fg=$bg,bg=$green,bold] SESSION #[fg=$green,bg=$bg]"
 
-                // --- 2. Tab Item Layouts ---
                 tab_normal   "#[fg=$surface,bg=$bg]#[fg=$subtext,bg=$surface]{index}: {name}#[fg=$surface,bg=$bg] "
                 tab_active   "#[fg=$green,bg=$bg]#[fg=$bg,bg=$green,bold]{index}: {name}#[fg=$green,bg=$bg] "
 
-                // --- 3. Datetime Widget ---
                 datetime        " #[fg=$text,bg=$surface,bold]{format}#[fg=$surface,bg=$bg]"
                 datetime_format "%H:%M"
                 datetime_timezone "America/New_York"
             }
         }
 
-        // --- PANE 2: Interactive Terminal Workspaces ---
+        // --- 2. WORKSPACE ---
         children
 
-        // --- PANE 3: Native Key-Hint Popup Bar ---
-        // This brings back the dynamic "Ctrl + <XX>" options panel seamlessly
+        // --- 3. BOTTOM BAR: Contextual Mode-Aware Menu Options ---
         pane size=1 borderless=true {
-            plugin location="zellij:status-bar"
+            plugin location="zjstatus" {
+                color_bg      "#e4e4e4"
+                color_surface "#d0d0d0"
+                color_text    "#4e4e4e"
+                color_blue    "#5f87ae"
+                color_red     "#af5f5f"
+                color_orange  "#af8760"
+                color_green   "#5f885f"
+
+                format_left   "#[fg=$text,bg=$bg]   {mode}"
+                format_center ""
+                format_right  ""
+                format_space  "#[bg=$bg]"
+
+                // Custom Rounded Hints that swap out instantly based on the active mode string!
+                mode_normal  "#[fg=$surface,bg=$bg]#[fg=$blue,bg=$surface,bold]Ctrl+Space#[fg=$text,bg=$surface] Tab #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$blue,bg=$surface,bold]Ctrl+p#[fg=$text,bg=$surface] Pane #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold]Ctrl+o#[fg=$text,bg=$surface] Session #[fg=$surface,bg=$bg]"
+
+                mode_tab     "#[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] n #[fg=$text,bg=$surface]New #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$red,bg=$surface,bold] x #[fg=$text,bg=$surface]Close #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$blue,bg=$surface,bold]Ctrl+Space#[fg=$text,bg=$surface] Normal #[fg=$surface,bg=$bg]"
+
+                mode_pane    "#[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] d #[fg=$text,bg=$surface]Split Down #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] r #[fg=$text,bg=$surface]Split Right #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$orange,bg=$surface,bold] s #[fg=$text,bg=$surface]Stack #[fg=$surface,bg=$bg]"
+
+                mode_session "#[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] w #[fg=$text,bg=$surface]Sessions #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$red,bg=$surface,bold] Ctrl+q #[fg=$text,bg=$surface]Quit #[fg=$surface,bg=$bg]"
+
+                mode_move    "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]hjkl / Arrows to Move Panes#[fg=$surface,bg=$bg]"
+                mode_resize  "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]hjkl / Arrows to Resize Panes#[fg=$surface,bg=$bg]"
+                mode_locked  "#[fg=$surface,bg=$bg]#[fg=$red,bg=$surface,bold]Ctrl+g#[fg=$text,bg=$surface] Unlock #[fg=$surface,bg=$bg]"
+            }
         }
     }
 }

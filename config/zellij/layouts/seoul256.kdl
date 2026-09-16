@@ -1,0 +1,126 @@
+
+layout {
+    default_tab_template {
+        // --- 1. TOP BAR: Seoul256 Light Custom zjstatus (No Center Text) ---
+        pane size=1 borderless=true {
+            plugin location="file:/home/nino/.config/zellij/plugins/zjstatus.wasm" {
+                // Border
+                border_enabled  "false"
+                border_char     "─"
+                border_format   "#[fg=#4C435C]{char}"
+                border_position "top"
+                hide_frame_for_single_pane "false"
+
+                // Seoul256 Light Color Palette
+                color_bg      "#e4e4e4" // Soft light cream background
+                color_surface "#d0d0d0" // Mid-tone light gray for capsule accents
+                color_text    "#4e4e4e" // Dark charcoal text
+                color_subtext "#878787" // Soft gray for inactive text
+
+                color_blue    "#5f87ae" // Soft blue
+                color_red     "#af5f5f" // Soft red
+                color_orange  "#af8760" // Soft orange
+                color_green   "#5f885f" // Soft green
+                color_yellow  "#af8760" // Soft gold
+                color_cyan    "#5f8787" // Soft teal
+                color_magenta "#875f87" // Soft purple
+
+                // --- Structure Layout ---
+                format_left   "{mode}#[bg=$bg] {tabs}"
+                format_center "" // REMOVED: Center block text cleared out to keep tab paths wide open
+                format_right  "{datetime}"
+                //format_space  "#[bg=$bg]"
+                format_space  ""
+                //format_hide_on_overlength "true"
+                format_precedence "crl"
+
+                border_enabled  "false"
+                border_char     "─"
+                border_format   "#[fg=#6C7086]{char}"
+                border_position "top"
+
+                hide_frame_for_single_pane "true"
+
+                // --- Mode Layout Strings ---
+                mode_normal        "#[bg=$green,fg=$bg,bold] NORMAL#[bg=$bg,fg=$green]"
+                mode_locked        "#[bg=$red,fg=$bg,bold] LOCKED #[bg=$bg,fg=$red]"
+                mode_resize        "#[bg=$blue,fg=$bg,bold] RESIZE#[bg=$bg,fg=$blue]"
+                mode_pane          "#[bg=$blue,fg=$bg,bold] PANE#[bg=$bg,fg=$blue]"
+                mode_tab           "#[bg=$yellow,fg=$bg,bold] TAB#[bg=$bg,fg=$yellow]"
+                mode_scroll        "#[bg=$blue,fg=$bg,bold] SCROLL#[bg=$bg,fg=$blue]"
+                mode_enter_search  "#[bg=$orange,fg=$bg,bold] ENT-SEARCH#[bg=$bg,fg=$orange]"
+                mode_search        "#[bg=$orange,fg=$bg,bold] SEARCH#[bg=$bg,fg=$orange]"
+                mode_rename_tab    "#[bg=$yellow,fg=$bg,bold] RENAME-TAB#[bg=$bg,fg=$yellow]"
+                mode_rename_pane   "#[bg=$blue,fg=$bg,bold] RENAME-PANE#[bg=$bg,fg=$blue]"
+                mode_session       "#[bg=$blue,fg=$bg,bold] SESSION#[bg=$bg,fg=$blue]"
+                mode_move          "#[bg=$blue,fg=$bg,bold] MOVE#[bg=$bg,fg=$blue]"
+                mode_prompt        "#[bg=$blue,fg=$bg,bold] PROMPT#[bg=$bg,fg=$blue]"
+                mode_tmux          "#[bg=$magenta,fg=$bg,bold] TMUX#[bg=$bg,fg=$magenta]"
+
+                                // --- SEOUL256 LIGHT: BACKGROUNDISH INACTIVE TABS ---
+                // We use soft cream/gray combinations so unselected tabs rest quietly in the background
+                tab_normal              "#[bg=$bg,fg=#dcdcdc]#[bg=#dcdcdc,fg=$subtext,bold]{index} #[bg=$bg,fg=$subtext] {name}#[bg=$bg,fg=$bg]"
+                tab_normal_fullscreen   "#[bg=$bg,fg=#dcdcdc]#[bg=#dcdcdc,fg=$subtext,bold]{index} #[bg=$bg,fg=$subtext] {name}{fullscreen_indicator}#[bg=$bg,fg=$bg]"
+                tab_normal_sync         "#[bg=$bg,fg=#dcdcdc]#[bg=#dcdcdc,fg=$subtext,bold]{index} #[bg=$bg,fg=$subtext] {name}{sync_indicator}#[bg=$bg,fg=$bg]"
+
+                // --- CURRENT ACTIVE TAB (Keep this bright so it stands out cleanly) ---
+                tab_active              "#[bg=$bg,fg=$cyan]#[bg=$cyan,fg=$bg,bold]{index} #[bg=$bg,fg=$cyan,bold] {name}{floating_indicator}#[bg=$bg,fg=$bg,bold]"
+                tab_active_fullscreen   "#[bg=$bg,fg=$cyan]#[bg=$cyan,fg=$bg,bold]{index} #[bg=$bg,fg=$cyan,bold] {name}{fullscreen_indicator}#[bg=$bg,fg=$bg,bold]"
+                tab_active_sync         "#[bg=$bg,fg=$cyan]#[bg=$cyan,fg=$bg,bold]{index} #[bg=$bg,fg=$cyan,bold] {name}{sync_indicator}#[bg=$bg,fg=$bg,bold]"
+
+
+                // Separator between the tabs
+                tab_separator           "#[bg=$bg] "
+
+                // Indicators
+                tab_sync_indicator       " "
+                tab_fullscreen_indicator "   "
+                tab_floating_indicator   "   "
+
+                command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format      "#[fg=$blue] {stdout} "
+                command_git_branch_interval    "10"
+                command_git_branch_rendermode  "static"
+
+                // Right Side Clock Pill
+                datetime        "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface,bold]{format}#[fg=$surface,bg=$bg]"
+                datetime_format "%H:%M"
+                datetime_timezone "America/New_York"
+            }
+        }
+
+        // --- 2. MIDDLE WORKSPACE ---
+        children
+        // --- 3. BOTTOM BAR: Native Dynamic Options Banner ---
+        pane size=1 borderless=true {
+            plugin location="zjstatus" {
+                color_bg      "#e4e4e4"
+                color_surface "#d0d0d0"
+                color_text    "#4e4e4e"
+                color_blue    "#5f87ae"
+                color_red     "#af5f5f"
+                color_orange  "#af8760"
+                color_green   "#5f885f"
+
+                format_left   "#[fg=$text,bg=$bg]   {mode}"
+                format_center ""
+                format_right  ""
+                format_space  "#[bg=$bg]"
+
+                // Custom Rounded Hints that swap out instantly based on the active mode string!
+                mode_normal  "#[fg=$surface,bg=$bg]#[fg=$blue,bg=$surface,bold]Ctrl+Space#[fg=$text,bg=$surface] Tab #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$blue,bg=$surface,bold]Ctrl+p#[fg=$text,bg=$surface] Pane #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold]Ctrl+o#[fg=$text,bg=$surface] Session #[fg=$surface,bg=$bg]"
+
+                mode_tab     "#[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] n #[fg=$text,bg=$surface]New #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$red,bg=$surface,bold] x #[fg=$text,bg=$surface]Close #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$blue,bg=$surface,bold]Ctrl+Space#[fg=$text,bg=$surface] Normal #[fg=$surface,bg=$bg]"
+
+                mode_pane    "#[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] d #[fg=$text,bg=$surface]Split Down #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] r #[fg=$text,bg=$surface]Split Right #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$orange,bg=$surface,bold] s #[fg=$text,bg=$surface]Stack #[fg=$surface,bg=$bg]"
+
+                mode_session "#[fg=$surface,bg=$bg]#[fg=$green,bg=$surface,bold] w #[fg=$text,bg=$surface]Sessions #[fg=$surface,bg=$bg]  #[fg=$surface,bg=$bg]#[fg=$red,bg=$surface,bold] Ctrl+q #[fg=$text,bg=$surface]Quit #[fg=$surface,bg=$bg]"
+
+                mode_move    "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]hjkl / Arrows to Move Panes#[fg=$surface,bg=$bg]"
+                mode_resize  "#[fg=$surface,bg=$bg]#[fg=$text,bg=$surface]hjkl / Arrows to Resize Panes#[fg=$surface,bg=$bg]"
+                mode_locked  "#[fg=$surface,bg=$bg]#[fg=$red,bg=$surface,bold]Ctrl+g#[fg=$text,bg=$surface] Unlock #[fg=$surface,bg=$bg]"
+            }
+        }
+    }
+}
+

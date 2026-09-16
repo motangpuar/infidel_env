@@ -1,0 +1,103 @@
+layout {
+    default_tab_template {
+        // --- 1. TOP BAR ---
+        pane size=1 borderless=true {
+            plugin location="file:/home/nino/.config/zellij/plugins/zjstatus.wasm" {
+                border_enabled  "false"
+                border_char     "─"
+                border_format   "#[fg=#4C435C]{char}"
+                border_position "top"
+
+                color_bg      "#dcdcdc"
+                color_tab     "#eeeeee"
+                color_surface "#d0d0d0"
+                color_text    "#4e4e4e"
+                color_subtext "#878787"
+
+                color_blue    "#5f87ae"
+                color_red     "#af5f5f"
+                color_orange  "#af8760"
+                color_green   "#5f885f"
+                color_cyan    "#5f8787"
+                color_coral   "#bf6b52"
+
+                //format_left   "#[fg=$fg,bg=$bg]\u{e0b6}{mode}#[fg=$fg,bg=$bg]\u{e0b4} {tabs}"
+                format_left   " {mode}#[bg=$bg]{tabs}"
+                format_center ""
+                format_right  "{datetime}"
+                format_space  "#[bg=$bg]"
+                format_precedence "crl"
+
+                // --- Mode marker: square block ---
+                mode_normal        "#[bg=$green,fg=$bg,bold] NORMAL #[fg=$green]\u{e0b8}#[bg=$bg]"
+                mode_locked        "#[bg=$red,fg=$bg,bold] LOCKED #[fg=$red]\u{e0b8}#[bg=$bg]"
+                mode_resize        "#[bg=$blue,fg=$bg,bold] RESIZE #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_pane          "#[bg=$blue,fg=$bg,bold] PANE #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_tab           "#[bg=$orange,fg=$bg,bold] TAB #[fg=$orange]\u{e0b8}#[bg=$bg]"
+                mode_scroll        "#[bg=$blue,fg=$bg,bold] SCROLL #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_enter_search  "#[bg=$orange,fg=$bg,bold] ENT-SEARCH #[fg=$orange]\u{e0b8}#[bg=$bg]"
+                mode_search        "#[bg=$orange,fg=$bg,bold] SEARCH #[fg=$orange]\u{e0b8}#[bg=$bg]"
+                mode_rename_tab    "#[bg=$orange,fg=$bg,bold] RENAME-TAB #[fg=$orange]\u{e0b8}#[bg=$bg]"
+                mode_rename_pane   "#[bg=$blue,fg=$bg,bold] RENAME-PANE #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_session       "#[bg=$blue,fg=$bg,bold] SESSION #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_move          "#[bg=$blue,fg=$bg,bold] MOVE #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_prompt        "#[bg=$blue,fg=$bg,bold] PROMPT #[fg=$blue]\u{e0b8}#[bg=$bg]"
+                mode_tmux          "#[bg=$coral,fg=$bg,bold] TMUX #[fg=$coral]\u{e0b8}#[bg=$bg]"
+
+                // --- Tabs: square index + square name, rounded cap only on the far right ---
+                tab_active              "#[bg=$blue,fg=$bg,bold]\u{e0b8} {index} #[bg=$tab,fg=$text,bold] {name} #[fg=$tab,bg=$bg]\u{e0b8}"
+                tab_active_fullscreen   "#[bg=$blue,fg=$bg,bold]\u{e0b8} {index} #[bg=$tab,fg=$text,bold] {name}{fullscreen_indicator} \u{e0b8}"
+                tab_active_sync         "#[bg=$blue,fg=$bg,bold]\u{e0b8} {index} #[bg=$tab,fg=$text,bold] {name}{sync_indicator} \u{e0b8}"
+
+                tab_normal              "#[bg=$coral,fg=$bg,bold]\u{e0b8} {index} #[bg=$cyan,fg=$bg,text] {name} #[fg=$cyan,bg=$bg]\u{e0b8}"
+                tab_normal_fullscreen   "#[bg=$coral,fg=$bg,bold]\u{e0b8} {index} #[bg=$cyan,fg=$bg,text] {name}{fullscreen_indicator} #[fg=$cyan,bg=$bg]\u{e0b8}"
+                tab_normal_sync         "#[bg=$coral,fg=$bg,bold]\u{e0b8} {index} #[bg=$cyan,fg=$bg,text] {name}{sync_indicator} #[fg=$cyan,bg=$bg]\u{e0b8}"
+
+                tab_separator           ""
+                tab_sync_indicator       " "
+                tab_fullscreen_indicator ""
+                tab_floating_indicator   ""
+
+                command_git_branch_command     "git rev-parse --abbrev-ref HEAD"
+                command_git_branch_format      "#[fg=$blue] {stdout} "
+                command_git_branch_interval    "10"
+                command_git_branch_rendermode  "static"
+
+                // --- Datetime: rounded caps ---
+                datetime        "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$text,bg=$surface,bold] {format} #[fg=$surface,bg=$bg]\u{e0b4}"
+                datetime_format "%a %d %b · %H:%M"
+                datetime_timezone "America/New_York"
+            }
+        }
+
+        // --- 2. MIDDLE WORKSPACE: content panes, frames come from config.kdl's pane_frames/pane_frame_style ---
+        children
+
+        // --- 3. BOTTOM BAR: rounded hint pills, keyed by intent ---
+        pane size=1 borderless=true {
+            plugin location="zjstatus" {
+                color_bg      "#dcdcdc"
+                color_surface "#d0d0d0"
+                color_text    "#4e4e4e"
+                color_blue    "#5f87ae"
+                color_red     "#af5f5f"
+                color_orange  "#af8760"
+                color_green   "#5f885f"
+
+                format_left   "#[fg=$text,bg=$bg]  {mode}"
+                format_center ""
+                format_right  ""
+                format_space  "#[bg=$bg]"
+
+                mode_normal  "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$blue,bg=$surface,bold]Ctrl+Space#[fg=$text,bg=$surface] Tab #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$blue,bg=$surface,bold]Ctrl+p#[fg=$text,bg=$surface] Pane #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$green,bg=$surface,bold]Ctrl+o#[fg=$text,bg=$surface] Session #[fg=$surface,bg=$bg]\u{e0b4}"
+                mode_tab     "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$green,bg=$surface,bold]n#[fg=$text,bg=$surface] New #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$red,bg=$surface,bold]x#[fg=$text,bg=$surface] Close #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$blue,bg=$surface,bold]Ctrl+Space#[fg=$text,bg=$surface] Normal #[fg=$surface,bg=$bg]\u{e0b4}"
+                mode_pane    "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$green,bg=$surface,bold]d#[fg=$text,bg=$surface] Split Down #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$green,bg=$surface,bold]r#[fg=$text,bg=$surface] Split Right #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$orange,bg=$surface,bold]s#[fg=$text,bg=$surface] Stack #[fg=$surface,bg=$bg]\u{e0b4}"
+                mode_session "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$green,bg=$surface,bold]w#[fg=$text,bg=$surface] Sessions #[fg=$surface,bg=$bg]\u{e0b4}  #[fg=$surface,bg=$bg]\u{e0b6}#[fg=$red,bg=$surface,bold]Ctrl+q#[fg=$text,bg=$surface] Quit #[fg=$surface,bg=$bg]\u{e0b4}"
+
+                mode_move    "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$text,bg=$surface]hjkl / Arrows to Move Panes #[fg=$surface,bg=$bg]\u{e0b4}"
+                mode_resize  "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$text,bg=$surface]hjkl / Arrows to Resize Panes #[fg=$surface,bg=$bg]\u{e0b4}"
+                mode_locked  "#[fg=$surface,bg=$bg]\u{e0b6}#[fg=$red,bg=$surface,bold]Ctrl+g#[fg=$text,bg=$surface] Unlock #[fg=$surface,bg=$bg]\u{e0b4}"
+            }
+        }
+    }
+}
