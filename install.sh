@@ -86,14 +86,22 @@ install_deps() {
 install_vim() {
   local target="${1:-user}"
   [ "$target" = "root" ] && { printf '[INFO] Skipping vim plugins for root (run manually)\n'; return; }
-  command -v vim >/dev/null 2>&1 || { printf '[WARN] vim not found, skipping\n'; return; }
-  printf '[INFO] Installing vim plugins\n'
-  vim +PlugInstall +qall 2>/dev/null || printf '[WARN] PlugInstall returned non-zero\n'
+  command -v nvim >/dev/null 2>&1 || command -v vim >/dev/null 2>&1 || { printf '[WARN] neither nvim nor vim found, skipping\n'; return; }
+
+  if command -v nvim >/dev/null 2>&1; then
+    CMD="nvim --headless"
+  else
+    CMD="vim -es"
+  fi
+
+  printf '[INFO] Installing vim plugins (headless via %s)\n' "$CMD"
+  $CMD -u "$ROOT_DIR/config/vim/vimrc" +PlugInstall +qall 2>/dev/null || printf '[WARN] PlugInstall returned non-zero\n'
+
   local coc="$HOME/.vim/plugged/coc.nvim"
   if [ -d "$coc" ]; then
     printf '[INFO] Installing CoC extensions\n'
     (cd "$coc" && npm ci) || printf '[WARN] npm ci failed for coc.nvim\n'
-    vim -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" || true
+    $CMD -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" || true
   else
     printf '[WARN] coc.nvim not found at %s\n' "$coc"
   fi
