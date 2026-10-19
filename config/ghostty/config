@@ -1,0 +1,43 @@
+#font-family = SpaceMono Nerd Font
+font-family = RecMonoCasual Nerd Font
+#font-family = FantasqueSansM Nerd Font
+#font-family = EnvyCodeR Nerd Font
+#font-family = GoMono Nerd Font
+font-size = 12.25
+#theme = Chalk
+theme = 3024 Day
+
+# Window
+window-padding-x = 0
+window-padding-y = 0
+window-padding-balance = true
+
+# Wayland
+gtk-single-instance = true
+
+# Clipboard
+copy-on-select = false
+clipboard-read = allow
+clipboard-write = allow
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+
+# Scrollback
+scrollback-limit = 10000
+
+# Shell integration
+shell-integration = detect
+shell-integration-features = no-cursor
+
+# Window behavior
+confirm-close-surface = true
+window-decoration = server
+mouse-hide-while-typing = true
+
+font-thicken = true
+font-thicken-strength = 150
+
+# If you are on Linux, you may also need to adjust freetype flags
+freetype-load-flags = "force-autohint"

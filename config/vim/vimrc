@@ -24,6 +24,10 @@ Plug 'evanleck/vim-svelte',
 " Plug 'maralla/completor.vim'
 " 
 Plug 'wakatime/vim-wakatime'
+Plug 'sbdchd/neoformat'
+
+" Custom plugin
+Plug 'motangpuar/leetcode.vim', {'branch': 'custom_path'}
 
 " Color Schemes
 Plug 'sainnhe/gruvbox-material'
@@ -253,3 +257,14 @@ augroup FinalKeymaps
   autocmd VimEnter * nnoremap H :tabprevious<CR>
   autocmd VimEnter * nnoremap L :tabnext<CR>
 augroup END
+
+let g:leetcode_solution_filetype = 'golang'
+nnoremap <leader>ll :LeetCodeList<cr>
+nnoremap <leader>lt :LeetCodeTest<cr>
+nnoremap <leader>ls :LeetCodeSubmit<cr>
+nnoremap <leader>li :LeetCodeSignIn<cr>
+
+set termguicolors
+autocmd BufWritePre *.js,*.py,*.cpp,*.go,*.yaml Neoformat
+" LeetCode
+let g:leetcode_browser_cookie_path = '/home/infidel/distrobox/archfox/.config/net.imput.helium/Default/Cookies'
