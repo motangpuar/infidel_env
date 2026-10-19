@@ -34,6 +34,7 @@ Options:
   -l, --links-only           Create symlinks only (no network/git)
   -d, --deps-only            Check dependencies only
   -a, --all                  Install for both user and root
+  -T, --test                 Headless vim smoke test (no env changes)
   -h, --help                 Show this help
 
 Examples:
@@ -42,6 +43,7 @@ Examples:
   install.sh -l                       # symlinks only, current user
   install.sh -t root -l               # symlinks only, for root
   install.sh -a                       # install for user and root
+  install.sh -T                       # headless vim test, touches nothing
 EOF
 }
 
@@ -119,6 +121,33 @@ install_tmux() {
   fi
 }
 
+test_vim() {
+  local tmp; tmp=$(mktemp -d)
+  local test_vimrc; test_vimrc="$tmp/vimrc"
+  local test_home; test_home="$tmp/home"
+  mkdir -p "$test_home/.vim"
+  cp -r "$ROOT_DIR/config/vim/runtime/"* "$test_home/.vim/" 2>/dev/null || cp -r "$ROOT_DIR/config/vim/runtime/autoload" "$test_home/.vim/"
+  cp "$ROOT_DIR/config/vim/vimrc" "$test_vimrc" 2>/dev/null || true
+  printf '[INFO] Headless test: %s (temp dir %s, home %s)\n' "${CMD:-vim -es}" "$tmp" "$test_home"
+  # Run PlugInstall + CoC install inside temp env (visible logs, no suppress)
+  if command -v nvim >/dev/null 2>&1; then
+    HOME="$test_home" nvim --headless -u "$test_vimrc" +PlugInstall +qall
+    printf '[OK] nvim PlugInstall exit %d\n' $?
+    HOME="$test_home" nvim --headless -u "$test_vimrc" \
+      -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" -c 'qa!'
+    printf '[OK] nvim CoC exit %d\n' $?
+  else
+    HOME="$test_home" vim -es -u "$test_vimrc" +PlugInstall +qall
+    printf '[OK] vim PlugInstall exit %d\n' $?
+    HOME="$test_home" vim -es -u "$test_vimrc" \
+      -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" -c 'qa!'
+    printf '[OK] vim CoC exit %d\n' $?
+  fi
+  printf '[INFO] Temp kept: %s (plugins under %s/.vim/plugged)\n' "$tmp" "$test_home"
+  # rm -rf "$tmp"  # uncomment to auto-clean; kept for inspection
+}
+
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
 # ------------------------------------------------------------------
 # CLI parsing with getopts (short) + manual long-opt support
 # ------------------------------------------------------------------
@@ -126,6 +155,7 @@ TARGET="user"
 LINKS_ONLY=0
 DEPS_ONLY=0
 ALL=0
+TEST_ONLY=0
 
 # Convert long opts to short for getopts
 for arg; do
@@ -135,17 +165,19 @@ for arg; do
     --links-only)  set -- "$@" "-l"; shift ;;
     --deps-only)   set -- "$@" "-d"; shift ;;
     --all)         set -- "$@" "-a"; shift ;;
+    --test)        set -- "$@" "-T"; shift ;;
     --help)        set -- "$@" "-h"; shift ;;
     *)            set -- "$@" "$arg"; shift ;;
   esac
 done
 
-while getopts ":t:ldah" opt; do
+while getopts ":t:ldahT" opt; do
   case $opt in
     t) TARGET="$OPTARG" ;;
     l) LINKS_ONLY=1 ;;
     d) DEPS_ONLY=1 ;;
     a) ALL=1 ;;
+    T) TEST_ONLY=1 ;;
     h) usage; exit 0 ;;
     :) printf 'Missing argument for -%s\n' "$OPTARG" >&2; usage; exit 1 ;;
     \?) printf 'Unknown option: -%s\n' "$OPTARG" >&2; usage; exit 1 ;;
@@ -158,6 +190,11 @@ done
 # ------------------------------------------------------------------
 # Execution
 # ------------------------------------------------------------------
+if [ "$TEST_ONLY" -eq 1 ]; then
+  test_vim
+  exit 0
+fi
+
 if [ "$DEPS_ONLY" -eq 1 ]; then
   install_deps
   exit 0
@@ -184,3 +221,4 @@ install_links "$TARGET"
 install_deps
 install_vim "$TARGET"
 install_tmux "$TARGET"
+fi

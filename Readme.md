@@ -1,3 +1,42 @@
+# Infidel's personal config for CLI based workspaces
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+
+## General Info
+
+This is the essential VIM and Tmux configuration for cli based unix systems, expanded to cover terminal emulators (Kitty, Ghostty) and modern multiplexers (Zellij).
+
+## Clone
+```bash
+    git clone https://git.nnag.me/infidel/infidel_env.git
+```
+
+## Setup
+The installer uses a declarative link manifest and supports `getopts` parsing.
+
+```bash
+    ./install.sh -t user        # links + plugins for current user (default)
+    ./install.sh -t root        # install for root
+    ./install.sh -l             # symlinks only, no network
+    ./install.sh -a             # install for both user and root
+    ./install.sh -T             # headless vim smoke test, touches nothing
+    ./install.sh -h             # help
+```
+
+Test without touching your environment:
+
+```bash
+    ./install.sh -T                    # headless smoke test
+    source install.sh; test_vim        # same, as a sourced function
+```
+
+> This installation script now can execute `:PlugUpdate` on first setup.
+
+## Config Coverage
+- **VIM / Neovim**: `.vimrc`, `.vim` runtime, vim-plug plugins, CoC.nvim
+- **Tmux**: `.tmux.conf`, TPM plugin manager, tmux-power theme
+- **Kitty**: `kitty.conf`, color themes (`seoul256-light`), custom tab bar (`tab_bar.py`)
+- **Ghostty**: `config`, `.ghostty`, auto theme
+- **Zellij**: `config.kdl`, layouts (`default`, `tmux`, etc.), plugins (`zjstatus`, `zjstatus-hints`)
 ## VIM
 
 ### Global Settings
@@ -144,3 +183,27 @@ We can enable podman access towards hosts' podman.sock by creating the distrobox
 ```bash
 sudo ln -s /usr/bin/distrobox-host-exec /usr/local/bin/podman
 ```
+## Dependencies (Arch Linux example)
+
+```bash
+# Core
+pacman -S --needed git neovim vim nodejs npm tmux zellij kitty ghostty ripgrep
+
+# Clipboard / notifications (used by tmux copy-mode + clipboard-notify)
+pacman -S --needed wl-clipboard xsel libnotify
+
+# LaTeX / viewer (vimtex + zellij themes)
+pacman -S --needed texlive-most zathura-pdf-mupdf python
+
+# Optional (zellij wasm plugins, kitty tab_bar.py, fzf)
+pacman -S --needed fzf
+
+# Fonts (nerd font required for kitty/ghostty icons)
+pacman -S --needed ttf-nerd-fonts-symbols
+```
+
+Notes:
+- `vim-plug` plugins are installed by `install.sh -i user`; requires `git` + `node` for `coc.nvim`.
+- `clipboard-notify.sh` requires `notify-send` (`libnotify`) and `wl-paste` (`wl-clipboard`).
+- `ghostty` uses `RecMonoCasual Nerd Font` (or `SpaceMono` / `MonoLisa`).
+- `kitty` uses `0xProto Nerd Font` (`ttf-nerd-fonts-symbols`).
