@@ -2,7 +2,7 @@ layout {
     default_tab_template {
         // --- 1. TOP BAR ---
         pane size=1 borderless=true {
-            plugin location="file:/home/nino/.config/zellij/plugins/zjstatus.wasm" {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
                 border_enabled  "false"
                 border_char     "─"
                 border_format   "#[fg=#4C435C]{char}"

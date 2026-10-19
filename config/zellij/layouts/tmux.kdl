@@ -2,7 +2,7 @@ layout {
     default_tab_template {
         // --- 1. TOP BAR: Seoul256 Light Custom zjstatus (No Center Text) ---
         pane size=2 borderless=true {
-            plugin location="file:/home/nino/.config/zellij/plugins/zjstatus.wasm" {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
                 // Seoul256 Light Color Palette
                 color_bg      "#e4e4e4" // Soft light cream background
                 color_surface "#d0d0d0" // Mid-tone light gray for capsule accents

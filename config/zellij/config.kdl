@@ -239,7 +239,7 @@ plugins {
     welcome-screen location="zellij:session-manager" {
         welcome_screen true
     }
-    zjstatus location="file:/home/nino/.config/zellij/plugins/zjstatus.wasm" {
+    zjstatus location="file:~/.config/zellij/plugins/zjstatus.wasm" {
 
         grant_permissions true
     }

@@ -3,7 +3,7 @@ layout {
     default_tab_template {
         // --- 1. TOP BAR: Seoul256 Light Custom zjstatus (No Center Text) ---
         pane size=1 borderless=true {
-            plugin location="file:/home/nino/.config/zellij/plugins/zjstatus.wasm" {
+            plugin location="file:~/.config/zellij/plugins/zjstatus.wasm" {
                 // Border
                 border_enabled  "false"
                 border_char     "─"
