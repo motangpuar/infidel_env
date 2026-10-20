@@ -201,8 +201,14 @@ vnoremap K :m '<-2<CR>gv=gv
 " --------------------------------------------------------
 augroup RecallCursorPos
     autocmd!
-    autocmd BufReadPost * if line("'\"") > 1 | exe "normal! g'\"" | endif
+    autocmd BufReadPost * call s:RestoreCursorPos()
 augroup END
+
+function! s:RestoreCursorPos() abort
+    if line("'\"") > 1
+        execute "normal! g'\""
+    endif
+endfunction
 
 " --------------------------------------------------------
 " Tab numbers (1‑9)
@@ -225,10 +231,23 @@ nnoremap <Leader>9 9gt
 " which also fixes imports — put goimports first.
 let g:neoformat_enabled_go = ['goimports', 'gofumpt']
 
-" Format on save (undojoin keeps Neoformat's edits in the same undo block)
+" Format on save.
+" NOTE: ':autocmd' takes ONE pattern — several patterns must be
+" comma-separated, otherwise only the first is registered and the rest
+" becomes part of the command. Also avoid '|' inside an autocmd
+" definition: it is split at the Ex level, which aborts the command.
+function! s:NeoFormatOnSave() abort
+    if !&modifiable
+        return
+    endif
+    " undojoin: keep the format changes in the preceding undo block
+    silent! undojoin
+    Neoformat
+endfunction
+
 augroup NeoformatAuto
     autocmd!
-    autocmd BufWritePre *.js *.py *.cpp *.go *.yaml *.json undojoin | Neoformat
+    autocmd BufWritePre *.js,*.py,*.cpp,*.go,*.yaml,*.json call s:NeoFormatOnSave()
 augroup END
 
 " --------------------------------------------------------
