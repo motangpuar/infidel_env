@@ -1,5 +1,7 @@
 # Infidel's personal config for CLI based workspaces
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+[![CI (GitHub)](https://github.com/motangpuar/infidel_env/actions/workflows/ci.yml/badge.svg?branch=test%2Frefactor-install)](https://github.com/motangpuar/infidel_env/actions/workflows/ci.yml)
+[![CI (Gitea)](https://code.ymarselino.dpdns.org/infidel/infidel_env/actions/workflows/ci.yml/badge.svg?branch=test%2Frefactor-install)](https://code.ymarselino.dpdns.org/infidel/infidel_env/actions)
 
 ## General Info
 

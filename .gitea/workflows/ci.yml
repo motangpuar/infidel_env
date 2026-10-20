@@ -1,0 +1,33 @@
+name: CI
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Gitea runner built-in checkout: no github.com download, no node
+      - uses: builtin:checkout
+
+      - name: Shell syntax
+        run: bash -n install.sh scripts/*.sh
+
+      - name: Installer smoke test
+        run: |
+          ./install.sh -h >/dev/null
+          ./install.sh -l
+          test -e "$HOME/.vimrc"
+          test -e "$HOME/.vim"
+
+      - name: Vim config loads cleanly
+        run: |
+          if ! command -v vim >/dev/null 2>&1; then
+            if command -v apt-get >/dev/null 2>&1; then
+              APT=apt-get
+              [ "$(id -u)" = "0" ] || APT="sudo apt-get"
+              $APT update -qq && $APT install -y -qq vim
+            fi
+          fi
+          command -v vim >/dev/null 2>&1
+          vim -es --not-a-term -u "$HOME/.vimrc" -c 'qa!' </dev/null
