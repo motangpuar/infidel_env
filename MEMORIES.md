@@ -1,9 +1,12 @@
 # Memories / State Ledger
 
-- **Current Status:** vimrc rewritten with best practices; plugin block restored after accidental deletion; clean load verified.
-- **Active State:** `config/vim/vimrc` rewritten (179→225 lines, organized sections); safe test harness `/tmp/vimcheck.sh` created.
+- **Current Status:** vimrc hardened + Go toolchain/formatter install added to `install.sh`. Branch `test/refactor-install` @ `b54e8d2` (local only; `7fb0a3e` is the last pushed commit).
+- **Active State:** `install.sh` (Go install flow), `config/vim/vimrc` (autocmd pattern fix), `AGENTS.md` (push policy), `MEMORIES.md` (this ledger).
 - **Known Blockers:** None.
-- **Next Steps:** User to review vimrc in lazygit/editor; decide on seoul256-light (colors file has E10 bug at line 39 — plugin-side, report upstream or patch).
+- **Next Steps:**
+  1. User validation of vim (coc completion, TAB/S-TAB) after the CoC install fix.
+  2. Decide remaining Neoformat formatters for py/js/yaml/json (`black`/`ruff`/`prettier` are absent).
+  3. Push only on explicit user request.
 - **Regression fixes (2nd pass):**
   - Kitty OSC bg was changed `#242424` -> `#f6f6ee` while fg stayed `#f6f3e8` => near-white on near-white => **invisible text**. Restored original `#242424`.
   - Dropped `set termguicolors` (was in original) => colours fell back to 256 mode. Restored.
@@ -32,9 +35,34 @@
   - **go.dev `.sha256` sidecar URLs are dead** (HTML redirect) — checksums only via the JSON API.
   - `goimports` shells out to `go` -> requires `go` on `$PATH`; satisfied by the `~/.local/bin` symlink + vimrc `$PATH` prepend.
 - **vimrc:** added `let $PATH = $HOME . '/.local/bin:' . $PATH` (formatters found regardless of launch path: lazygit, root, non-interactive shells).
-- **Neoformat:** `g:neoformat_enabled_go = ['goimports', 'gofumpt']` (stock `gofmt` would shadow goimports, losing import fixing); autocmd now uses `undojoin | Neoformat` per upstream README.
+- **Neofomat-on-save bug (critical, fixed in `b54e8d2`):** format-on-save never worked for `.go`/`.py`/`.cpp`/`.yaml`/`.json`.
+  - **Root cause 1 — `:autocmd` takes ONE pattern.** Multiple patterns must be **comma separated** (`autocmd.txt` §"autocmd-patterns": "{aupat} can be a comma-separated list"). The refactor had converted `*.js,*.py,*.cpp,*.go,*.yaml` into a **space separated** list => only `*.js` was registered, the rest became part of the *command* => `.js` saves raised `E492: Not an editor command: *.py`, other filetypes never fired at all. The pre-refactor original (`e5082a0`) had the commas right — the regression was mine.
+  - **Root cause 2 — `|` is split at the Ex level.** `autocmd BufWritePre *.go undojoin | Neoformat` registers only `undojoin` and executes ` Neoformat` at *definition* time. The upstream README pattern (`undojoin | Neoformat`) is broken for the same reason. A bar inside an autocmd definition must be avoided entirely.
+  - **Fix:** comma separated patterns + script-local functions with no bar: `s:NeoFormatOnSave()` (does `silent! undojoin` + `Neoformat`) and `s:RestoreCursorPos()` (replaces the `if ... | exe ... | endif` RecallCursorPos autocmd, which had the same bar problem).
+  - **Verified (PTY):** `.go` save removes the unused `"os"` import and reindents; `exists('#NeoformatAuto#BufWritePre#*.go')` = 1; cursor recall still restores line 8; `vimcheck` exit 0; `colors=seoul256-light`, `bg=light`, `termguicolors=1` unchanged.
+  - **Diagnostic lesson:** `:autocmd` listing shows pattern+command concatenated, so it *looks* like all six patterns were registered. Use `execute('autocmd <group>')` + `exists('#group#event#pat')` to check what is really registered.
+- **Neoformat:** `g:neoformat_enabled_go = ['goimports', 'gofumpt']` (stock `gofmt` would shadow goimports, losing import fixing); autocmd calls `s:NeoFormatOnSave()`.
   - Note: `vim -es` headless makes Neoformat appear to no-op — verify formatter behaviour in a real PTY, not `-es`.
 - **Chronology:**
+  - **Session: CoC install catering (commit pending):**
+    - **Root cause of the `npm ci` EUSAGE failure:** the checkout is the **`release` branch of coc.nvim** (`coc.nvim-release@0.0.82`) — `package.json` has **zero dependencies** and upstream ships **no `package-lock.json`**; `build/index.js` is fully bundled (no external `require()`s). So `npm ci` can never succeed and was never needed. Release coc.nvim needs **no npm step at all**.
+    - Rewrote the CoC block in `install_vim()` into a `coc_setup()` helper:
+      - `build/index.js` present (release build) or `node_modules` present -> skip npm entirely.
+      - source build -> `npm ci` only if a lockfile exists, else `npm install --no-audit --no-fund --no-progress` (npm ci would hard-fail EUSAGE without a lockfile).
+      - extensions: checked against `${XDG_CONFIG_HOME:-~/.config}/coc/extensions/node_modules` (legacy `~/.vim/coc/extensions` preferred if it exists); only **missing** ones installed.
+      - extension install is done **with npm directly** (`npm install --prefix <ext_root> ...` layout), mirroring coc's own installer — headless `CocInstall -sync` **deadlocks in `vim -es`** (timed out at 120s in test).
+      - before npm install, existing `node_modules/*` entries are merged into `<ext_root>/package.json` (npm **prunes** packages not listed as deps — verified).
+      - `test_vim()` CoC section trimmed to PlugInstall smoke test (CocInstall headless can hang).
+    - Verified: sandbox (all-present -> full skip; missing ext -> npm install, all 4 present after) + real HOME rerun -> all skip, exit 0.
+    - Gotcha while testing: the harness shell exports `XDG_CONFIG_HOME`/`XDG_DATA_HOME` -> sandbox tests must pin `XDG_CONFIG_HOME=$SB/.config` or they read the real user's coc data.
+    - **User already ran `./install.sh` on real HOME:** Go 1.27.3 + gofmt/gofumpt/goimports installed in `~/.local/bin`; go imports fix verified working.
+  - **Session: Go toolchain + Neoformat (commits `b231281`, `7fb0a3e`):**
+    - `install.sh`: added `install_go()` — official go.dev tarball via `curl`, sha256 verified against the JSON API, extracted to `~/.local/go`, `go`+`gofmt` symlinked into `~/.local/bin`, `GOBIN=~/.local/bin go install` for `goimports` + `gofumpt`. Pinned `GO_VERSION="1.27.3"` + `--go-latest`. Idempotent skip logic. `--deps-only` reports go/gofmt/goimports/gofumpt. No pacman/apt involvement, no jq dependency, no shell-rc edits.
+    - **Bugs found while testing:** (1) `go install a@latest b@latest` -> "All packages must be provided by the same module", fixed with one package per invocation; (2) go.dev `.sha256` sidecar URLs return an HTML redirect (dead) -> checksums only via `?mode=json&include=all`; (3) `goimports` shells out to `go`, so it needs `go` on `$PATH`; (4) `vim -es` headless makes Neoformat look like a no-op -> formatter behaviour must be verified in a real PTY, not `-es`.
+    - `config/vim/vimrc`: `let $PATH = $HOME . '/.local/bin:' . $PATH`; `g:neoformat_enabled_go = ['goimports', 'gofumpt']` (stock `gofmt` shadows goimports and loses import fixing); autocmd -> `undojoin | Neoformat`.
+    - Verified in an isolated HOME: download -> checksum -> extract -> `go install` -> tools built -> `exepath()` finds them in vim -> PTY session reformatted a messy `.go` file (unused import removed, indentation fixed).
+    - **Pushed to origin + gitea (`861dc1e..7fb0a3e`) — done before the push-policy rule existed.**
+    - **New rule (AGENTS.md): NEVER `git push` unless the user explicitly asks.** Commit locally; leave unpushed by default.
   - 08:00 session: **vimrc best-practice rewrite — MISTAKES made, lessons learned:**
     - (1) `vim -u vimrc -c 'qa!'` BLOCKS forever on "Press ENTER" when no TTY → 12m47s hang + abort. **Fix: always use `timeout 20 vim -es --not-a-term -u RC </dev/null` harness (saved as /tmp/vimcheck.sh); check exit 124 = hang.**
     - (2) Rewrote file but DROPPED entire `call plug#begin/end()` block → plugins missing from rtp → E185 `colo gruvbox-material` blocked user's lazygit. **Fix: restored plugin block; defensive colorscheme load with fallback chain; ALWAYS diff before/after write (verify key sections survive).**
