@@ -4,6 +4,19 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ------------------------------------------------------------------
+# Go toolchain + formatter tools.
+# Manager-agnostic: official tarball from go.dev (checksum verified) plus
+# "go install" — no pacman/apt/dnf involvement.
+# ------------------------------------------------------------------
+GO_VERSION="1.27.3"              # pinned baseline; --go-latest resolves newest stable
+GO_DL_API="https://go.dev/dl/?mode=json"
+GO_TOOLS=(
+  "golang.org/x/tools/cmd/goimports:goimports"
+  "mvdan.cc/gofumpt:gofumpt"
+)
+GO_LATEST=0
+
+# ------------------------------------------------------------------
 # Config manifest — links applied for user or root target.
 # Format: "relative_src  dst_path" (dst expanded with ~)
 # ------------------------------------------------------------------
@@ -26,7 +39,7 @@ LINKS=(
 
 # ------------------------------------------------------------------
 usage() {
-  cat <<'EOF'
+  cat <<EOF
 Usage: install.sh [OPTIONS]
 
 Options:
@@ -35,6 +48,7 @@ Options:
   -d, --deps-only            Check dependencies only
   -a, --all                  Install for both user and root
   -T, --test                 Headless vim smoke test (no env changes)
+      --go-latest            Install newest stable Go instead of pinned v$GO_VERSION
   -h, --help                 Show this help
 
 Examples:
@@ -43,6 +57,7 @@ Examples:
   install.sh -l                       # symlinks only, current user
   install.sh -t root -l               # symlinks only, for root
   install.sh -a                       # install for user and root
+  install.sh --go-latest              # install newest stable Go + formatter tools
   install.sh -T                       # headless vim test, touches nothing
 EOF
 }
@@ -83,6 +98,133 @@ install_deps() {
   else
     printf '[OK] node found\n'
   fi
+  if command -v go >/dev/null 2>&1; then
+    printf '[OK] go found: %s\n' "$(command -v go)"
+  elif [ -x "$HOME/.local/go/bin/go" ]; then
+    printf '[OK] go found: %s\n' "$HOME/.local/go/bin/go"
+  else
+    printf '[WARN] go not found. Go formatters (gofmt/goimports) need it.\n'
+  fi
+  local t
+  for t in gofmt goimports gofumpt; do
+    if command -v "$t" >/dev/null 2>&1 || [ -x "$HOME/.local/bin/$t" ]; then
+      printf '[OK] %s found\n' "$t"
+    else
+      printf '[WARN] %s not found (install.sh installs it)\n' "$t"
+    fi
+  done
+}
+
+# ------------------------------------------------------------------
+# Go helpers — no jq dependency, no package manager.
+# ------------------------------------------------------------------
+go_latest_version() {
+  curl -fsSL "$GO_DL_API" 2>/dev/null \
+    | sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' | head -1
+}
+
+go_tarball_sha256() {
+  local file="$1"
+  curl -fsSL "${GO_DL_API}&include=all" 2>/dev/null | awk -v f="$file" '
+    $0 ~ "\"filename\": \"" f "\"" {found=1}
+    found && /"sha256":/ {gsub(/[^0-9a-f]/,"",$2); print $2; exit}'
+}
+
+install_go() {
+  local target="${1:-user}"
+  local home="$HOME"; [ "$target" = "root" ] && home="/root"
+  local goroot="$home/.local/go"
+  local gobin="$home/.local/bin"
+
+  local go_bin=""
+  if command -v go >/dev/null 2>&1; then
+    printf '[OK] go detected: %s\n' "$(command -v go)"
+    go_bin="$(command -v go)"
+  elif [ -x "$goroot/bin/go" ]; then
+    printf '[OK] go already installed: %s\n' "$goroot/bin/go"
+    go_bin="$goroot/bin/go"
+  else
+    local ver="$GO_VERSION"
+    if [ "$GO_LATEST" -eq 1 ]; then
+      ver="$(go_latest_version || true)"
+      if [ -z "$ver" ]; then
+        printf '[WARN] could not resolve latest Go version — falling back to pinned go%s\n' "$GO_VERSION"
+        ver="go$GO_VERSION"
+      else
+        printf '[INFO] Using latest stable Go: %s\n' "$ver"
+      fi
+    else
+      local latest; latest="$(go_latest_version || true)"
+      if [ -n "$latest" ] && [ "$latest" != "go$ver" ]; then
+        printf '[INFO] newer stable Go available: %s (pinned: go%s) — re-run with --go-latest\n' "$latest" "$ver"
+      fi
+    fi
+    ver="${ver#go}"
+
+    local arch
+    case "$(uname -m)" in
+      x86_64)        arch="amd64" ;;
+      aarch64|arm64) arch="arm64" ;;
+      *) printf '[WARN] unsupported architecture: %s\n' "$(uname -m)"; return 1 ;;
+    esac
+
+    local tarball="go${ver}.linux-${arch}.tar.gz"
+    local url="https://go.dev/dl/${tarball}"
+    local sha; sha="$(go_tarball_sha256 "$tarball" || true)"
+    if [ -z "$sha" ]; then
+      printf '[WARN] no checksum published for %s — refusing to install\n' "$tarball"
+      return 1
+    fi
+
+    local tmp; tmp="$(mktemp -d)"
+    printf '[INFO] Downloading %s\n' "$url"
+    if ! curl -fsSL -o "$tmp/$tarball" "$url"; then
+      printf '[WARN] download failed: %s\n' "$url"
+      rm -rf "$tmp"; return 1
+    fi
+    if ! printf '%s  %s\n' "$sha" "$tmp/$tarball" | sha256sum -c - >/dev/null 2>&1; then
+      printf '[WARN] checksum mismatch for %s — aborting\n' "$tarball"
+      rm -rf "$tmp"; return 1
+    fi
+    mkdir -p "$home/.local"
+    rm -rf "$goroot"
+    if ! tar -C "$home/.local" -xzf "$tmp/$tarball"; then
+      printf '[WARN] extraction failed\n'
+      rm -rf "$tmp"; return 1
+    fi
+    rm -rf "$tmp"
+    go_bin="$goroot/bin/go"
+    printf '[OK] go %s installed -> %s\n' "$ver" "$go_bin"
+
+    # Expose go + gofmt through the PATH-wired directory
+    mkdir -p "$gobin"
+    ln -sf "$goroot/bin/go" "$gobin/go"
+    [ -x "$goroot/bin/gofmt" ] && ln -sf "$goroot/bin/gofmt" "$gobin/gofmt"
+  fi
+
+  # --- formatter tools ---
+  local mods=() entry mod bin
+  for entry in "${GO_TOOLS[@]}"; do
+    mod="${entry%%:*}"
+    bin="${entry##*:}"
+    if [ -x "$gobin/$bin" ] || command -v "$bin" >/dev/null 2>&1; then
+      printf '[OK] %s already installed\n' "$bin"
+    else
+      mods+=("$mod@latest")
+    fi
+  done
+  if [ "${#mods[@]}" -eq 0 ]; then
+    return 0
+  fi
+  local pkg rc=0
+  for pkg in "${mods[@]}"; do
+    printf '[INFO] go install %s -> %s\n' "$pkg" "$gobin"
+    if ! GOBIN="$gobin" "$go_bin" install "$pkg"; then
+      printf '[WARN] go install failed: %s\n' "$pkg"
+      rc=1
+    fi
+  done
+  return $rc
 }
 
 install_vim() {
@@ -166,18 +308,20 @@ for arg; do
     --deps-only)   set -- "$@" "-d"; shift ;;
     --all)         set -- "$@" "-a"; shift ;;
     --test)        set -- "$@" "-T"; shift ;;
+    --go-latest)   set -- "$@" "-G"; shift ;;
     --help)        set -- "$@" "-h"; shift ;;
     *)            set -- "$@" "$arg"; shift ;;
   esac
 done
 
-while getopts ":t:ldahT" opt; do
+while getopts ":t:ldahTG" opt; do
   case $opt in
     t) TARGET="$OPTARG" ;;
     l) LINKS_ONLY=1 ;;
     d) DEPS_ONLY=1 ;;
     a) ALL=1 ;;
     T) TEST_ONLY=1 ;;
+    G) GO_LATEST=1 ;;
     h) usage; exit 0 ;;
     :) printf 'Missing argument for -%s\n' "$OPTARG" >&2; usage; exit 1 ;;
     \?) printf 'Unknown option: -%s\n' "$OPTARG" >&2; usage; exit 1 ;;
@@ -203,9 +347,11 @@ fi
 if [ "$ALL" -eq 1 ]; then
   install_links user
   install_deps
+  install_go user
   install_vim user
   install_tmux user
   install_links root
+  install_go root
   install_vim root
   install_tmux root
   exit 0
@@ -219,6 +365,7 @@ fi
 # Default: links + plugins + deps
 install_links "$TARGET"
 install_deps
+install_go "$TARGET"
 install_vim "$TARGET"
 install_tmux "$TARGET"
 fi

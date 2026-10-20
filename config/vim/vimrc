@@ -2,6 +2,7 @@
 " infiler vimrc — Cleaned, best‑practice, Vim9‑compatible
 " ============================================================================
 set nocompatible                               " Disable Vi compatibility
+let $PATH = $HOME . '/.local/bin:' . $PATH    " User-local tools (goimports, gofumpt, ...)
 set encoding=utf-8                            " UTF‑8 encoding
 set fileencoding=utf-8                        " UTF‑8 file encoding
 set autoread                                  " Auto‑re-read changed files
@@ -217,11 +218,17 @@ nnoremap <Leader>8 8gt
 nnoremap <Leader>9 9gt
 
 " --------------------------------------------------------
-" Neoformat (auto on save)
 " --------------------------------------------------------
+" Neoformat
+" --------------------------------------------------------
+" Go: 'gofmt' ships with the toolchain and would shadow goimports,
+" which also fixes imports — put goimports first.
+let g:neoformat_enabled_go = ['goimports', 'gofumpt']
+
+" Format on save (undojoin keeps Neoformat's edits in the same undo block)
 augroup NeoformatAuto
     autocmd!
-    autocmd BufWritePre *.js *.py *.cpp *.go *.yaml *.json Neoformat
+    autocmd BufWritePre *.js *.py *.cpp *.go *.yaml *.json undojoin | Neoformat
 augroup END
 
 " --------------------------------------------------------
