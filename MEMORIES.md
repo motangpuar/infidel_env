@@ -21,6 +21,19 @@
   - Verified: `colors=seoul256-light`, `bg=light`, `Normal: ctermfg=239 ctermbg=253 guifg=#616161 guibg=#E1E1E1`.
   - Painted truecolor: bg `48;2;225;225;225` (#E1E1E1) + fg `38;2;97;97;97` (#616161) = light theme, readable.
   - kitty OSC unchanged from original: fg `#f6f3e8`, bg `#242424` (terminal default only, outside the canvas).
+- **Go toolchain + formatters (manager-agnostic):** `install.sh` now fetches Go itself via `curl`
+  from the official go.dev tarball (sha256 verified against `https://go.dev/dl/?mode=json&include=all`),
+  extracts to `~/.local/go`, symlinks `go`+`gofmt` into `~/.local/bin` (already on PATH via `.bashrc:15`),
+  then `GOBIN=~/.local/bin go install` for `goimports` + `gofumpt`.
+  - Pinned `GO_VERSION="1.27.3"`; `--go-latest` resolves newest stable from the JSON API.
+  - Skip logic: `go` on PATH -> skip toolchain; `~/.local/go/bin/go` present -> skip; per-tool skip in `~/.local/bin`.
+  - **Bug found in testing:** `go install a@latest b@latest` fails with "All packages must be provided by the same module" — must install one package per invocation.
+  - **No jq dependency:** version parsed with `sed`, sha256 with `awk` (jq present but not required).
+  - **go.dev `.sha256` sidecar URLs are dead** (HTML redirect) — checksums only via the JSON API.
+  - `goimports` shells out to `go` -> requires `go` on `$PATH`; satisfied by the `~/.local/bin` symlink + vimrc `$PATH` prepend.
+- **vimrc:** added `let $PATH = $HOME . '/.local/bin:' . $PATH` (formatters found regardless of launch path: lazygit, root, non-interactive shells).
+- **Neoformat:** `g:neoformat_enabled_go = ['goimports', 'gofumpt']` (stock `gofmt` would shadow goimports, losing import fixing); autocmd now uses `undojoin | Neoformat` per upstream README.
+  - Note: `vim -es` headless makes Neoformat appear to no-op — verify formatter behaviour in a real PTY, not `-es`.
 - **Chronology:**
   - 08:00 session: **vimrc best-practice rewrite — MISTAKES made, lessons learned:**
     - (1) `vim -u vimrc -c 'qa!'` BLOCKS forever on "Press ENTER" when no TTY → 12m47s hang + abort. **Fix: always use `timeout 20 vim -es --not-a-term -u RC </dev/null` harness (saved as /tmp/vimcheck.sh); check exit 124 = hang.**
