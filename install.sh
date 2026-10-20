@@ -17,6 +17,17 @@ GO_TOOLS=(
 GO_LATEST=0
 
 # ------------------------------------------------------------------
+# CoC.nvim extensions — installed only when missing from the Coc data
+# dir (~/.config/coc/extensions/node_modules).
+# ------------------------------------------------------------------
+COC_EXTENSIONS=(
+  "coc-vimlsp"
+  "coc-sh"
+  "coc-python"
+  "coc-spell-checker"
+)
+
+# ------------------------------------------------------------------
 # Config manifest — links applied for user or root target.
 # Format: "relative_src  dst_path" (dst expanded with ~)
 # ------------------------------------------------------------------
@@ -243,11 +254,108 @@ install_vim() {
 
   local coc="$HOME/.vim/plugged/coc.nvim"
   if [ -d "$coc" ]; then
-    printf '[INFO] Installing CoC extensions\n'
-    (cd "$coc" && npm ci) || printf '[WARN] npm ci failed for coc.nvim\n'
-    $CMD -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" || true
+    coc_setup "$coc"
   else
     printf '[WARN] coc.nvim not found at %s\n' "$coc"
+  fi
+}
+
+# Bootstrap coc.nvim + install only the missing CoC extensions.
+# - release builds (build/index.js present) ship fully bundled — no npm
+#   step at all; upstream releases have no package-lock.json, so the old
+#   unconditional `npm ci` always died with EUSAGE on existing installs.
+# - source builds: `npm ci` when a lockfile exists, else `npm install`.
+# - extensions already present in the Coc data dir are never reinstalled.
+coc_setup() {
+  local coc="$1"
+
+  if [ -f "$coc/build/index.js" ]; then
+    printf '[OK] coc.nvim present (release build, self-contained) — skipping npm\n'
+  elif [ -d "$coc/node_modules" ]; then
+    printf '[OK] coc.nvim deps present — skipping npm\n'
+  elif [ ! -f "$coc/package.json" ]; then
+    printf '[WARN] no package.json in %s — cannot bootstrap dependencies\n' "$coc"
+  elif command -v npm >/dev/null 2>&1; then
+    printf '[INFO] Installing coc.nvim dependencies (source build)\n'
+    if [ -f "$coc/package-lock.json" ]; then
+      (cd "$coc" && npm ci --no-audit --no-fund --no-progress) || printf '[WARN] npm ci failed for coc.nvim\n'
+    else
+      # upstream ships no lockfile; npm ci would hard-fail with EUSAGE
+      (cd "$coc" && npm install --no-audit --no-fund --no-progress) || printf '[WARN] npm install failed for coc.nvim\n'
+    fi
+  else
+    printf '[WARN] npm not found — CoC.nvim source build needs node/npm\n'
+  fi
+
+  # CoC data dir: XDG first, then legacy ~/.vim/coc
+  local ext_root="${XDG_CONFIG_HOME:-$HOME/.config}/coc/extensions"
+  [ -d "$HOME/.vim/coc/extensions" ] && ext_root="$HOME/.vim/coc/extensions"
+
+  local missing=()
+  local ext
+  for ext in "${COC_EXTENSIONS[@]}"; do
+    if [ -d "$ext_root/node_modules/$ext" ]; then
+      printf '[OK] %s already installed — skipping\n' "$ext"
+    else
+      missing+=("$ext")
+    fi
+  done
+
+  if [ "${#missing[@]}" -gt 0 ]; then
+    if command -v npm >/dev/null 2>&1; then
+      # Install with npm directly — same layout coc's own installer uses
+      # (node_modules under the data dir). Headless `CocInstall -sync` can
+      # deadlock in `vim -es`, so we mirror it deterministically.
+      printf '[INFO] Installing CoC extensions: %s\n' "${missing[*]}"
+      mkdir -p "$ext_root/node_modules"
+      # Merge existing extensions into package.json first: npm prunes
+      # packages that are not listed as dependencies.
+      if command -v node >/dev/null 2>&1; then
+        node -e '
+          const fs = require("fs"), path = require("path");
+          const root = process.argv[1], add = process.argv.slice(2);
+          const pj = path.join(root, "package.json");
+          let pkg = { dependencies: {} };
+          try { pkg = JSON.parse(fs.readFileSync(pj, "utf8")); } catch (e) {}
+          pkg.dependencies = pkg.dependencies || {};
+          const nm = path.join(root, "node_modules");
+          const names = [];
+          if (fs.existsSync(nm)) {
+            for (const e of fs.readdirSync(nm)) {
+              if (e.startsWith("@")) {
+                for (const s of fs.readdirSync(path.join(nm, e))) names.push(e + "/" + s);
+              } else names.push(e);
+            }
+          }
+          for (const n of names) {
+            try {
+              const meta = JSON.parse(fs.readFileSync(path.join(nm, n, "package.json"), "utf8"));
+              const key = meta.name || n;
+              if (!(key in pkg.dependencies)) pkg.dependencies[key] = "*";
+            } catch (e) {}
+          }
+          for (const a of add) if (!(a in pkg.dependencies)) pkg.dependencies[a] = "*";
+          fs.writeFileSync(pj, JSON.stringify(pkg, null, 2) + "\n");
+        ' "$ext_root" "${missing[@]}" 2>/dev/null \
+          || printf '[WARN] could not merge extension package.json\n'
+      elif [ ! -f "$ext_root/package.json" ]; then
+        printf '{\n  "dependencies": {}\n}\n' > "$ext_root/package.json"
+      fi
+      (cd "$ext_root" && npm install --no-audit --no-fund --no-progress "${missing[@]}") \
+        || printf '[WARN] npm install failed for CoC extensions\n'
+      local m
+      for m in "${missing[@]}"; do
+        if [ -d "$ext_root/node_modules/$m" ]; then
+          printf '[OK] %s installed\n' "$m"
+        else
+          printf '[WARN] %s NOT installed\n' "$m"
+        fi
+      done
+    else
+      printf '[WARN] npm not found — install CoC extensions manually: %s\n' "${missing[*]}"
+    fi
+  else
+    printf '[OK] All CoC extensions present — nothing to install\n'
   fi
 }
 
@@ -271,19 +379,14 @@ test_vim() {
   cp -r "$ROOT_DIR/config/vim/runtime/"* "$test_home/.vim/" 2>/dev/null || cp -r "$ROOT_DIR/config/vim/runtime/autoload" "$test_home/.vim/"
   cp "$ROOT_DIR/config/vim/vimrc" "$test_vimrc" 2>/dev/null || true
   printf '[INFO] Headless test: %s (temp dir %s, home %s)\n' "${CMD:-vim -es}" "$tmp" "$test_home"
-  # Run PlugInstall + CoC install inside temp env (visible logs, no suppress)
+  # PlugInstall smoke test only; CoC extension install is covered by
+  # coc_setup() (CocInstall headless can hang in `vim -es`).
   if command -v nvim >/dev/null 2>&1; then
     HOME="$test_home" nvim --headless -u "$test_vimrc" +PlugInstall +qall
     printf '[OK] nvim PlugInstall exit %d\n' $?
-    HOME="$test_home" nvim --headless -u "$test_vimrc" \
-      -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" -c 'qa!'
-    printf '[OK] nvim CoC exit %d\n' $?
   else
     HOME="$test_home" vim -es -u "$test_vimrc" +PlugInstall +qall
     printf '[OK] vim PlugInstall exit %d\n' $?
-    HOME="$test_home" vim -es -u "$test_vimrc" \
-      -c "CocInstall coc-vimlsp coc-sh coc-python coc-spell-checker" -c 'qa!'
-    printf '[OK] vim CoC exit %d\n' $?
   fi
   printf '[INFO] Temp kept: %s (plugins under %s/.vim/plugged)\n' "$tmp" "$test_home"
   # rm -rf "$tmp"  # uncomment to auto-clean; kept for inspection
