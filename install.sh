@@ -141,6 +141,86 @@ go_tarball_sha256() {
     found && /"sha256":/ {gsub(/[^0-9a-f]/,"",$2); print $2; exit}'
 }
 
+# Published archive filenames for every version (go.dev JSON API).
+go_published_files() {
+  curl -fsSL "${GO_DL_API}&include=all" 2>/dev/null \
+    | sed -n 's/.*"filename": *"\([^"]*\)".*/\1/p'
+}
+
+# Published version numbers (go.dev JSON API).
+go_published_versions() {
+  curl -fsSL "${GO_DL_API}&include=all" 2>/dev/null \
+    | sed -n 's/.*"version": *"\(go[^"]*\)".*/\1/p' | sort -u -r
+}
+
+# OS token as used in Go release filenames.
+go_os() {
+  case "$(uname -s)" in
+    Linux)                          echo linux ;;
+    Darwin)                         echo darwin ;;
+    FreeBSD)                        echo freebsd ;;
+    OpenBSD)                        echo openbsd ;;
+    NetBSD)                         echo netbsd ;;
+    DragonFly)                      echo dragonfly ;;
+    SunOS)                          echo solaris ;;
+    AIX)                            echo aix ;;
+    Plan9)                         echo plan9 ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) echo windows ;;
+    *) return 1 ;;
+  esac
+}
+
+# Arch token as used in Go release filenames.
+go_arch() {
+  local os="$1" m
+  m="$(uname -m)"
+  case "$m" in
+    x86_64|amd64)        echo amd64 ;;
+    aarch64|arm64)       echo arm64 ;;
+    i386|i486|i586|i686) echo 386 ;;
+    armv6l|armv7l|armv8l|arm)
+      # BSDs publish "arm", Linux publishes "armv6l"
+      case "$os" in
+        freebsd|openbsd|netbsd) echo arm ;;
+        *) echo armv6l ;;
+      esac ;;
+    ppc64le) echo ppc64le ;;
+    ppc64)   echo ppc64 ;;
+    riscv64) echo riscv64 ;;
+    s390x)   echo s390x ;;
+    loong64) echo loong64 ;;
+    *) return 1 ;;
+  esac
+}
+
+# "<os>-<arch>" release suffix, e.g. linux-amd64, darwin-arm64, freebsd-amd64.
+go_platform_suffix() {
+  local os arch
+  os="$(go_os)" || return 1
+  arch="$(go_arch "$os")" || return 1
+  printf '%s-%s\n' "$os" "$arch"
+}
+
+# Checksum helper: coreutils sha256sum, else shasum (macOS), else openssl.
+sha256_of() {
+  local f="$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$f" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$f" | awk '{print $1}'
+  elif command -v openssl >/dev/null 2>&1; then
+    openssl dgst -sha256 "$f" | awk '{print $NF}'
+  else
+    return 1
+  fi
+}
+
+# True when the given go binary actually runs here (catches wrong OS/arch).
+go_binary_runs() {
+  [ -x "$1" ] || return 1
+  "$1" version >/dev/null 2>&1
+}
+
 install_go() {
   local target="${1:-user}"
   local home="$HOME"; [ "$target" = "root" ] && home="/root"
@@ -148,12 +228,15 @@ install_go() {
   local gobin="$home/.local/bin"
 
   local go_bin=""
-  if command -v go >/dev/null 2>&1; then
+  if command -v go >/dev/null 2>&1 && go_binary_runs "$(command -v go)"; then
     printf '[OK] go detected: %s\n' "$(command -v go)"
     go_bin="$(command -v go)"
-  elif [ -x "$goroot/bin/go" ]; then
+  elif [ -x "$goroot/bin/go" ] && go_binary_runs "$goroot/bin/go"; then
     printf '[OK] go already installed: %s\n' "$goroot/bin/go"
     go_bin="$goroot/bin/go"
+  elif [ -x "$goroot/bin/go" ]; then
+    printf '[WARN] %s does not run on this system (wrong OS/arch?) — reinstalling\n' "$goroot/bin/go"
+    rm -rf "$goroot"
   else
     local ver="$GO_VERSION"
     if [ "$GO_LATEST" -eq 1 ]; then
@@ -172,18 +255,29 @@ install_go() {
     fi
     ver="${ver#go}"
 
-    local arch
-    case "$(uname -m)" in
-      x86_64)        arch="amd64" ;;
-      aarch64|arm64) arch="arm64" ;;
-      *) printf '[WARN] unsupported architecture: %s\n' "$(uname -m)"; return 1 ;;
-    esac
+    local suffix
+    if ! suffix="$(go_platform_suffix)"; then
+      printf '[WARN] unsupported platform: %s/%s\n' "$(uname -s)" "$(uname -m)"
+      return 1
+    fi
+    printf '[INFO] Target platform: %s\n' "$suffix"
 
-    local tarball="go${ver}.linux-${arch}.tar.gz"
+    if [ "${suffix%%-*}" = "windows" ]; then
+      printf '[WARN] Windows needs the .zip release — install Go manually from https://go.dev/dl/\n'
+      return 1
+    fi
+
+    local tarball="go${ver}.${suffix}.tar.gz"
     local url="https://go.dev/dl/${tarball}"
     local sha; sha="$(go_tarball_sha256 "$tarball" || true)"
     if [ -z "$sha" ]; then
-      printf '[WARN] no checksum published for %s — refusing to install\n' "$tarball"
+      if ! go_published_files | grep -qx "$tarball"; then
+        printf '[WARN] Go %s has no build for %s\n' "$ver" "$suffix"
+        printf '[INFO] published for go%s: %s\n' "$ver" \
+          "$(go_published_files | grep "^go${ver}\." | sed "s/^go${ver}\.//; s/\.tar\.gz$//" | tr '\n' ' ')"
+      else
+        printf '[WARN] no checksum published for %s — refusing to install\n' "$tarball"
+      fi
       return 1
     fi
 
@@ -193,8 +287,15 @@ install_go() {
       printf '[WARN] download failed: %s\n' "$url"
       rm -rf "$tmp"; return 1
     fi
-    if ! printf '%s  %s\n' "$sha" "$tmp/$tarball" | sha256sum -c - >/dev/null 2>&1; then
+    local got; got="$(sha256_of "$tmp/$tarball" || true)"
+    if [ -z "$got" ]; then
+      printf '[WARN] no sha256 tool found (need sha256sum, shasum or openssl) — aborting\n'
+      rm -rf "$tmp"; return 1
+    fi
+    if [ "$got" != "$sha" ]; then
       printf '[WARN] checksum mismatch for %s — aborting\n' "$tarball"
+      printf '[WARN]   expected %s\n' "$sha"
+      printf '[WARN]   got      %s\n' "$got"
       rm -rf "$tmp"; return 1
     fi
     mkdir -p "$home/.local"
@@ -205,6 +306,11 @@ install_go() {
     fi
     rm -rf "$tmp"
     go_bin="$goroot/bin/go"
+    if ! go_binary_runs "$go_bin"; then
+      printf '[WARN] %s does not run on this system — wrong build for %s/%s?\n' "$go_bin" "$(uname -s)" "$(uname -m)"
+      rm -rf "$goroot"
+      return 1
+    fi
     printf '[OK] go %s installed -> %s\n' "$ver" "$go_bin"
 
     # Expose go + gofmt through the PATH-wired directory
@@ -212,6 +318,11 @@ install_go() {
     ln -sf "$goroot/bin/go" "$gobin/go"
     [ -x "$goroot/bin/gofmt" ] && ln -sf "$goroot/bin/gofmt" "$gobin/gofmt"
   fi
+
+  case ":$PATH:" in
+    *":$gobin:"*) ;;
+    *) printf '[WARN] %s is not in PATH — add it to your shell profile to use go/goimports/gofumpt\n' "$gobin" ;;
+  esac
 
   # --- formatter tools ---
   local mods=() entry mod bin
