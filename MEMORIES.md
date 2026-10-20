@@ -1,12 +1,14 @@
 # Memories / State Ledger
 
-- **Current Status:** vimrc hardened + Go toolchain/formatter install added to `install.sh`. Branch `test/refactor-install` @ `0d4e515` (local only; `7fb0a3e` is the last pushed commit).
-- **Active State:** `install.sh` (Go install flow), `config/vim/vimrc` (autocmd pattern fix), `AGENTS.md` (push policy), `MEMORIES.md` (this ledger).
+- **Current Status:** vimrc hardened + Go toolchain/formatter installer + CI workflows (GitHub + Gitea Actions) with README badges. Branch `test/refactor-install` @ `7de8a96` (local only; `7fb0a3e` is the last pushed commit).
+- **Active State:** `install.sh` (Go install flow), `config/vim/vimrc` (autocmd pattern fix), `AGENTS.md` (push policy + commit identity), `MEMORIES.md` (this ledger).
 - **Known Blockers:** None.
 - **Next Steps:**
   1. User validation of vim (coc completion, TAB/S-TAB) after the CoC install fix.
   2. Decide remaining Neoformat formatters for py/js/yaml/json (`black`/`ruff`/`prettier` are absent).
-  3. Push only on explicit user request.
+  3. **Push:** `origin test/refactor-install` + `gitea test/refactor-install` both carried `bd9be0a`; GitHub Actions workflow registered (`ci.yml`, active) — badges will now show CI status.
+  4. Update the Gitea badge URL if the active branch name changes (it currently is `test/refactor-install`).
+  5. Run CI locally (manual `./install.sh -h ./install.sh -l` then `vim -es`) to confirm the banner matches reality; or wait for CI runs on push.
 - **Regression fixes (2nd pass):**
   - Kitty OSC bg was changed `#242424` -> `#f6f6ee` while fg stayed `#f6f3e8` => near-white on near-white => **invisible text**. Restored original `#242424`.
   - Dropped `set termguicolors` (was in original) => colours fell back to 256 mode. Restored.
@@ -44,6 +46,15 @@
 - **Neoformat:** `g:neoformat_enabled_go = ['goimports', 'gofumpt']` (stock `gofmt` would shadow goimports, losing import fixing); autocmd calls `s:NeoFormatOnSave()`.
   - Note: `vim -es` headless makes Neoformat appear to no-op — verify formatter behaviour in a real PTY, not `-es`.
 - **Commit identity:** all commits use `infidel <ninoagus@protonmail.com>` (repo-local `user.name`/`user.email` pinned). Two commits made with a wrong `-c user.name=pi` override were rewritten via `reset --mixed` + recommit before pushing; AGENTS.md now forbids identity overrides.
+- **CI (GitHub Actions + Gitea Actions):** minimal, no-plugin-install workflows.
+  - Files: `.github/workflows/ci.yml` (GitHub) and `.gitea/workflows/ci.yml` (Gitea). Content identical except checkout: Gitea uses `builtin:checkout` (no github.com download, no node required); GitHub uses `actions/checkout@v4`.
+  - Job (4 steps): `bash -n install.sh scripts/*.sh` -> `./install.sh -h` -> `./install.sh -l` -> `vim -es --not-a-term -u ~/.vimrc -c 'qa!'` (installs vim via apt-get only if missing, root or sudo).
+  - **Design decisions:** `install.sh -T` (full PlugInstall) deliberately NOT in CI — plugin download makes CI network-fragile and slow. `plug.vim` IS tracked in `config/vim/runtime/autoload/`, so the vimrc loads cleanly (via `silent!` colorscheme fallbacks) with zero plugins installed — only `-h`/`-l` are needed.
+  - **vimrc validation = exit code.** Empirically verified: broken vimrc -> `vim -es` exits 1; clean -> exits 0. No message parsing needed.
+  - **Validated locally:** both YAMLs parsed with the bundled `yaml` npm package; every CI step ran successfully in a clean sandbox HOME (`HOME=$(mktemp -d) ./install.sh -l` symlinks `.vimrc`/`.vim`); negative test (appended bad command to vimrc) -> exit 1, restored.
+  - **Badge endpoints:** GitHub badge `.../actions/workflows/ci.yml/badge.svg?branch=test%2Frefactor-install` -> "CI - passing" (200). Gitea badge -> the native endpoint `.../badge.svg` renders "ci: success" (green #4c1) but **ignores `logo=`** (no logo support, and it is served directly, not redirected to shields), so the README uses a **shields.io dynamic JSON badge** instead: `img.shields.io/badge/dynamic/json?url=<gitea api>&query=$.workflow_runs[0].status&label=CI&color=4c1&logo=gitea&logoColor=white` -> "CI: success" with the real Gitea logo (base64 `<title>Gitea</title>` in the SVG). shields.io **cannot** derive the color from the data (color is static), so the *text* is the live status signal; color is Gitea brand green.
+  - **Requires before Gitea runs:** Actions enabled on the repo (`Enable Repository Actions` in repo settings) + a registered Gitea runner with the `ubuntu-latest` label (default label).
+  - Not pushed; runs only trigger after an explicit push.
 - **Chronology:**
   - **Session: CoC install catering (commit pending):**
     - **Root cause of the `npm ci` EUSAGE failure:** the checkout is the **`release` branch of coc.nvim** (`coc.nvim-release@0.0.82`) — `package.json` has **zero dependencies** and upstream ships **no `package-lock.json`**; `build/index.js` is fully bundled (no external `require()`s). So `npm ci` can never succeed and was never needed. Release coc.nvim needs **no npm step at all**.

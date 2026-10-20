@@ -14,5 +14,5 @@ Commands: `./install.sh [-t user|root|all] [-l] [-d] [-T] [-h]`
 - **Never override `user.name` / `user.email`** (no `-c user.name=...`, no `--author=`).
 - Commits must use the configured repo identity: `infidel <ninoagus@protonmail.com>`.
 - If a commit is made under a wrong identity, rewrite it (reflog + `reset` + recommit) before it is pushed.
-Status: `test/refactor-install` branch — vimrc hardened (seoul256-light, CoC TAB/S-TAB, kitty OSC intact); `install.sh` gained a manager-agnostic Go toolchain + `goimports`/`gofumpt` installer.
+Status: `test/refactor-install` branch — vimrc hardened (seoul256-light, CoC TAB/S-TAB, kitty OSC intact); `install.sh` gained a manager-agnostic Go toolchain + `goimports`/`gofumpt` installer; CI workflows for GitHub Actions + Gitea Actions added with README badges.
 Next: run `./install.sh` to install Go locally; user validation in lazygit/terminal.
