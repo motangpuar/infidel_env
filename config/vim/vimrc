@@ -1,12 +1,27 @@
-" infidel
+" ============================================================================
+" infiler vimrc — Cleaned, best‑practice, Vim9‑compatible
+" ============================================================================
+set nocompatible                               " Disable Vi compatibility
+set encoding=utf-8                            " UTF‑8 encoding
+set fileencoding=utf-8                        " UTF‑8 file encoding
+set autoread                                  " Auto‑re-read changed files
+set hidden                                    " Switch buffers without saving
 
+filetype plugin indent on
+syntax enable
 
+let mapleader = ","                          " Default leader key
+let maplocalleader = ","                     " Default localleader
+
+" ============================================================================
+" Plugins (vim-plug)
+" ============================================================================
 call plug#begin('~/.vim/plugged')
 
-" Essentials 
+" ============== Essentials ==============
 Plug 'jasonccox/vim-wayland-clipboard'
-Plug 'tpope/vim-sensible'         " Sensible defaults
-Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
+Plug 'tpope/vim-sensible'                     " Sensible defaults
+Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' } " File explorer
 Plug 'junegunn/vim-easy-align'
 Plug 'junegunn/fzf.vim'
 Plug 'junegunn/goyo.vim'
@@ -17,170 +32,97 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'ojroques/vim-oscyank'
 Plug 'ryanoasis/vim-devicons'
 
-" Auto Completes
+" ============== Completion & Tools ==============
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'evanleck/vim-svelte', 
-" Plug 'sheerun/vim-polyglot'
-" Plug 'maralla/completor.vim'
-" 
+Plug 'evanleck/vim-svelte'
 Plug 'wakatime/vim-wakatime'
 Plug 'sbdchd/neoformat'
 
-" Custom plugin
+" ============== Custom ==============
 Plug 'motangpuar/leetcode.vim', {'branch': 'custom_path'}
 
-" Color Schemes
+" ============== Colorschemes ==============
 Plug 'sainnhe/gruvbox-material'
-Plug 'rakr/vim-two-firewatch' 
+Plug 'rakr/vim-two-firewatch'
 Plug 'joshdick/onedark.vim'
-"Plug 'lifepillar/vim-gruvbox8' 
 Plug 'drewtempelmeyer/palenight.vim'
-Plug 'kaicataldo/material.vim', { 'branch': 'main' }
-" Plug 'UndeadLeech/vim-undead'
-" Plug 'sainnhe/everforest' 
-Plug 'sainnhe/vim-color-forest-night' 
+Plug 'kaicataldo/material.vim', {'branch': 'main'}
+Plug 'sainnhe/vim-color-forest-night'
 Plug 'karoliskoncevicius/sacredforest-vim'
 Plug 'junegunn/seoul256.vim'
 
-" Misc
-" Plug 'preservim/vim-markdown'
+" ============== Misc ==============
 Plug 'lervag/vimtex'
 Plug 'wellle/context.vim'
 
-" Markdown
+" ============== Markdown ==============
 Plug 'liuchengxu/vista.vim'
-Plug 'iamcco/markdown-preview.nvim', { 'do': { -> mkdp#util#install() } }
+Plug 'iamcco/markdown-preview.nvim', {'do': { -> mkdp#util#install() }}
 
 call plug#end()
 
-" Kitty Patch
-let &t_ut=''
-if has('gui_running') || has('nvim') 
-    hi Normal 		guifg=#f6f3e8 guibg=#242424 
-else
-    " Set the terminal default background and foreground colors, thereby
-    " improving performance by not needing to set these colors on empty cells.
-    hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
-    let &t_ti = &t_ti . "\033]10;#f6f3e8\007\033]11;#242424\007"
-    let &t_te = &t_te . "\033]110\007\033]111\007"
-endif
+" ============================================================================
+" Core Options
+" ============================================================================
+set number                                     " Show line numbers
+set hlsearch                                  " Highlight search results
+set ignorecase                                " Ignore case in searches
+set smartcase                                 " Override if pattern has uppercase
 
-let mapleader = ","
-syntax on
-set re=1
-set nocompatible
+set mouse=a                                   " Enable mouse in all modes
 
-set number                                          " Show numbers on the left
-set hlsearch                                        " Highlight search results
-set ignorecase                                      " Search ingnoring case
-set smartcase                                       " Do not ignore case if the search patter has uppercase set noerrorbells
-set tabstop=4                                       " Tab size of 4 spaces
-set softtabstop=4                                   " On insert use 4 spaces for tab
-set shiftwidth=4
-set expandtab                                       " Use apropiate number of spaces
-                                                    " set nowrap                " Wrapping sucks (except on markdown); Now smart
-autocmd BufRead,BufNewFile *.md,*.txt setlocal wrap " DO wrap on markdown files set noswapfile
-
-set mouse=a                                         " Enable mouse on all modes
 if has('clipboard')
-    set clipboard=unnamed,unnamedplus                   " Use the OS clipboard
+    set clipboard=unnamed,unnamedplus         " Use OS clipboard
 endif
 
-set showmatch
-set termguicolors 
-" set t_Co=256
-set splitright splitbelow
-set list lcs=tab:\¦\      "(here is a space)
-let &t_SI = "\e[6 q"      " Make cursor a line in insert
-let &t_EI = "\e[2 q"      " Make cursor a line in insert
+set showmatch                                 " Auto‑match brackets
+set termguicolors                             " 24‑bit RGB colour support
+set lazyredraw                               " Speed up redraws during scripts
+set updatetime=300                           " Min latency for completions / OSC
 
-" Keep VisualMode after indent with > or <
-vmap < <gv
-vmap > >gv
-"
-" Move Visual blocks with J an K
-vnoremap J :m '>+1<CR>gv=gv
-vnoremap K :m '<-2<CR>gv=gv
+set tabstop=4                               " Tab width: 4 spaces
+set softtabstop=4                           " Insert: 4 spaces for tab
+set shiftwidth=4                            " Auto‑indent width
+set expandtab                               " Use spaces instead of tabs
 
-" Autocomand to remember las editing position
-augroup vimrc-remember-cursor-position
-  autocmd!
-  autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
-augroup END
+set noswapfile                               " Don't create swap files
 
-" let g:everforest_better_performance = 1
-" let g:everforest_background = 'soft'
-"colo gruvbox-material
+set nowrap                                  " Disable line wrapping
+set list lcs=tab:>-                          " Show tabs as filled triangle (2‑char spec)
+set showbreak=...                            " Line‑continuation marker
+
+set completeopt=menu,menuone,noselect,noinsert " Completion options
+set splitright splitbelow                   " New splits right / below
+
+" Terminal cursor shape (Vim — not Neovim)
+if !has('nvim')
+    let &t_SI="\e[6 q"  " Steady vertical bar in insert mode
+    let &t_EI="\e[2 q"  " Steady block in normal mode
+endif
+
+" --------------------------------------------------------
+" Kitty terminal patch (only when running in kitty, not nvim)
+" --------------------------------------------------------
+if &term =~# 'kitty' && !has('nvim')
+    let &t_ut=''
+    " Set terminal default fg/bg (OSC 10/11) — dark bg + light fg, else text is invisible
+    let &t_ti=&t_ti . "\033]10;#f6f3e8\007\033]11;#242424\007"
+    let &t_te=&t_te . "\033]110\007\033]111\007"
+endif
+
+" --------------------------------------------------------
+" Colourscheme
+" --------------------------------------------------------
 set background=light
-colo seoul256-light
-" colorscheme everforest
+" Primary scheme: seoul256-light (original scheme). Falls back gracefully.
+silent! colorscheme seoul256-light
+if !exists('g:colors_name') || g:colors_name !~# '^seoul256'
+    silent! colorscheme gruvbox-material   " fallback
+endif
 
-map <C-k><C-k> :NERDTreeToggle<cr> " Use Ctrl-P to open the fuzzy file opener
-nnoremap <C-p> :Files<cr>
-
-"Easy Align
-" Start interactive EasyAlign in visual mode (e.g. vipga)
-xmap ga <Plug>(EasyAlign)
-
-" Start interactive EasyAlign for a motion/text object (e.g. gaip)
-nmap ga <Plug>(EasyAlign)
-
-" Lightlime Setup
-" Lighlime Shortcut
-nmap <Leader>l :Limelight!!<cr>
-
-" Color name (:help cterm-colors) or ANSI code
-let g:limelight_conceal_ctermfg = 'gray'
-let g:limelight_conceal_ctermfg = 240
-
-" Color name (:help gui-colors) or RGB color
-let g:limelight_conceal_guifg = 'DarkGray'
-let g:limelight_conceal_guifg = '#777777'
-
-" Default: 0.5
-let g:limelight_default_coefficient = 0.7
-
-" Number of preceding/following paragraphs to include (default: 0)
-" let g:limelight_paragraph_span = 1
-
-" Beginning/end of paragraph
-"   When there's no empty line between the paragraphs
-"   and each paragraph starts with indentation
-" let g:limelight_bop = '^\s'
-" let g:limelight_eop = '\ze\n^\s'
-
-" Highlighting priority (default: 10)
-"   Set it to -1 not to overrule hlsearch
-let g:limelight_priority = -1
-
-"CoC 
-let g:coc_disable_startup_warning = 1
-
-"Tab Navigation
-function! s:check_back_space() abort
-      let col = col('.') - 1
-        return !col || getline('.')[col - 1]  =~# '\s'
-    endfunction
-
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
-      \ coc#refresh()
-inoremap <silent><expr> <CR> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>"
-                     
-"Coc vimlsp Highlighting
-let g:markdown_fenced_languages = [
-      \ 'vim',
-      \ 'help'
-      \]
-
-
-"Goyo Setup
-autocmd! User GoyoEnter Limelight       "Call Limelight every time enter Goyo
-autocmd! User GoyoLeave Limelight!
-nmap <F8> : Goyo<cr>                    " Toggle Goyo
-
-"Airline 
+" --------------------------------------------------------
+" Airline / Tabline
+" --------------------------------------------------------
 let g:airline_theme = 'sacredforest'
 let g:airline_powerline_fonts = 1
 let g:airline#extensions#tabline#enabled = 1
@@ -188,60 +130,82 @@ let g:airline#extensions#tabline#show_tabs = 1
 let g:airline#extensions#tabline#show_buffers = 0
 let g:airline#extensions#tabline#show_tab_nr = 1
 let g:airline#extensions#tabline#tab_nr_type = 1
-let g:airline#extensions#tabline#left_sep = "\uE0B4"
+let g:airline#extensions#tabline#left_sep  = "\uE0B4"
 let g:airline#extensions#tabline#right_sep = "\uE0B6"
-let g:airline#extensions#tabline#left_alt_sep = "\u2022"
+let g:airline#extensions#tabline#left_alt_sep  = "\u2022"
 let g:airline#extensions#tabline#right_alt_sep = "\u2022"
-let g:airline_left_sep = "\uE0B4"
+let g:airline_left_sep  = "\uE0B4"
 let g:airline_right_sep = "\uE0B6"
-let g:airline_left_alt_sep = "\u2022"
+let g:airline_left_alt_sep  = "\u2022"
 let g:airline_right_alt_sep = "\u2022"
 
-"Smart Indent for Wrapped Lines
-set breakindent
-set breakindentopt=shift:3,min:40,sbr
-set showbreak=...
+" --------------------------------------------------------
+" Limelight + Goyo
+" --------------------------------------------------------
+let g:limelight_conceal_ctermfg = 'gray'
+let g:limelight_default_coefficient = 0.7
+let g:limelight_priority = -1
 
-" This is necessary for VimTeX to load properly. The "indent" is optional.
-" Note that most plugin managers will do this automatically.
-filetype plugin indent on
+autocmd! User GoyoEnter Limelight       " Call Limelight on Goyo enter
+autocmd! User GoyoLeave Limelight!
+nnoremap <F8> : Goyo<cr>                  " Toggle Goyo
 
-" This enables Vim's and neovim's syntax-related features. Without this, some
-" VimTeX features will not work (see ":help vimtex-requirements" for more
-" info).
-syntax enable
-
-" Viewer options: One may configure the viewer either by specifying a built-in
-" viewer method:
+" --------------------------------------------------------
+" VimTex (LaTeX)
+" --------------------------------------------------------
 let g:vimtex_view_method = 'zathura'
-
-" Or with a generic interface:
 let g:vimtex_view_general_viewer = 'okular'
 let g:vimtex_quickfix_autoclose_after_keystrokes = 1
-let g:vimtex_view_general_options = '--unique file:@pdf\#src:@line@tex'
-
-" VimTeX uses latexmk as the default compiler backend. If you use it, which is
-" strongly recommended, you probably don't need to configure anything. If you
-" want another compiler backend, you can change it as follows. The list of
-" supported backends and further explanation is provided in the documentation,
-" see ":help vimtex-compiler".
+let g:vimtex_view_general_options = '--unique file:@pdf#src:@line@tex'
 let g:vimtex_compiler_method = 'latexmk'
-
-" Most VimTeX mappings rely on localleader and this can be changed with the
-" following line. The default is usually fine and is the symbol "\".
 let maplocalleader = ","
 
-" Paste to WindowManager
-let g:context_enabled = 1
-"vnoremap <leader>y :OSCYank<CR>
-vmap <leader>y <Plug>OSCYankVisual
+" --------------------------------------------------------
+" Coc / Tabs / Navigation
+" --------------------------------------------------------
+let g:coc_disable_startup_warning = 1
+let g:markdown_fenced_languages = [            'vim',             'help']
 
-" Soft Marker for to long of a comment
-set colorcolumn=80
+" ---- CoC insert‑mode completion ----
+" <TAB>  : cycle completion / trigger completion
+" <S-TAB>: literal tab (insert mode)
+" <CR>   : accept completion when the popup is open
+function! s:check_back_space() abort
+    let l:col = col('.') - 1
+    return !l:col || getline('.')[l:col - 1] =~# '\s'
+endfunction
 
-set completeopt=menu,menuone,noselect,noinsert
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <silent><expr> <S-TAB> pumvisible() ? "\<C-p>" : "\<TAB>"
+inoremap <silent><expr> <CR> pumvisible() ? coc#_select_confirm() : "\<C-g>u\<CR>"
 
-" Tab Navigation
+nnoremap <C-p> :Files<cr>                  " Fuzzy file opener (fzf.vim)
+nnoremap <C-k><C-k> :NERDTreeToggle<cr>         " Toggle NERDTree
+
+" --------------------------------------------------------
+" Visual block indent & move
+" --------------------------------------------------------
+" Keep visual selection after indent
+vnoremap < >gv
+vnoremap < <gv
+" Move visual blocks J / K
+vnoremap J :m '>+1<CR>gv=gv
+vnoremap K :m '<-2<CR>gv=gv
+
+" --------------------------------------------------------
+" Cursor position recall
+" --------------------------------------------------------
+augroup RecallCursorPos
+    autocmd!
+    autocmd BufReadPost * if line("'\"") > 1 | exe "normal! g'\"" | endif
+augroup END
+
+" --------------------------------------------------------
+" Tab numbers (1‑9)
+" --------------------------------------------------------
 nnoremap <Leader>1 1gt
 nnoremap <Leader>2 2gt
 nnoremap <Leader>3 3gt
@@ -252,19 +216,28 @@ nnoremap <Leader>7 7gt
 nnoremap <Leader>8 8gt
 nnoremap <Leader>9 9gt
 
-augroup FinalKeymaps
-  autocmd!
-  autocmd VimEnter * nnoremap H :tabprevious<CR>
-  autocmd VimEnter * nnoremap L :tabnext<CR>
+" --------------------------------------------------------
+" Neoformat (auto on save)
+" --------------------------------------------------------
+augroup NeoformatAuto
+    autocmd!
+    autocmd BufWritePre *.js *.py *.cpp *.go *.yaml *.json Neoformat
 augroup END
 
+" --------------------------------------------------------
+" LeetCode
+" --------------------------------------------------------
 let g:leetcode_solution_filetype = 'golang'
 nnoremap <leader>ll :LeetCodeList<cr>
 nnoremap <leader>lt :LeetCodeTest<cr>
 nnoremap <leader>ls :LeetCodeSubmit<cr>
 nnoremap <leader>li :LeetCodeSignIn<cr>
 
-set termguicolors
-autocmd BufWritePre *.js,*.py,*.cpp,*.go,*.yaml Neoformat
-" LeetCode
-let g:leetcode_browser_cookie_path = '/home/infidel/distrobox/archfox/.config/net.imput.helium/Default/Cookies'
+" --------------------------------------------------------
+" Miscellaneous
+" --------------------------------------------------------
+set colorcolumn=80
+let g:context_enabled = 1
+vmap <leader>y <Plug>OSCYankVisual          " Copy Yank to window manager
+
+" End vimrc"
